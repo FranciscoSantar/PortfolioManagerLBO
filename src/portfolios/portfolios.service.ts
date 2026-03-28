@@ -1,14 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreatePortfolioDto } from './dto/create-portfolio.dto';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
+
 import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
 import { Portfolio } from './entities/portfolio.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { handlePostgresError } from 'src/common/utils/postgres-error-handler';
+import { CreatePortfolioDto } from './dto/create-portfolio.dto';
+import { handlePostgresError } from '../common/utils/postgres-error-handler';
+import { Transaction } from 'src/transactions/entities/transaction.entity';
 
 @Injectable()
 export class PortfoliosService {
   constructor(
+
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
+
     @InjectRepository(Portfolio)
     private readonly portfolioRepository: Repository<Portfolio>,
   ) { }
@@ -73,14 +79,15 @@ export class PortfoliosService {
   }
 
   async remove(id: string, userId: string) {
-    try {
-      const portfolio = await this.findOne(id, userId)
-      this.portfolioRepository.softDelete(portfolio)
-      return true;
+    const portfolio = await this.findOne(id, userId)
 
-    } catch (error) {
-      handlePostgresError(error)
-    }
+    await this.dataSource.transaction(async (manager) => {
+      await manager.softDelete(Transaction, {
+        portfolio
+      });
+
+      await manager.softDelete(Portfolio, { id });
+    });
+    return true
   }
-
 }
