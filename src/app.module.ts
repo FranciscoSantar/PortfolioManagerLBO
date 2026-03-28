@@ -9,6 +9,8 @@ import { PortfoliosModule } from './portfolios/portfolios.module';
 import { AssetsModule } from './assets/assets.module';
 import { AssetTypesModule } from './asset_types/asset_types.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { YahooFinanceModule } from './yahoo-finance/yahoo-finance.module';
+import { SeedModule } from './seed/seed.module';
 import configuration from '../config/configuration';
 
 @Module({
@@ -37,6 +39,8 @@ import configuration from '../config/configuration';
     AssetsModule,
     AssetTypesModule,
     TransactionsModule,
+    YahooFinanceModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
