@@ -1,4 +1,3 @@
-import { Transform } from 'class-transformer'; // Used as sanitizer of strings
 import {
   Column,
   CreateDateColumn,
@@ -10,21 +9,19 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Portfolio } from 'src/portfolios/entities/portfolio.entity';
+import { Portfolio } from '../../portfolios/entities/portfolio.entity';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Transform(({ value }) => value.trim()) @Column({ name: 'first_name' })
+  @Column({ name: 'first_name' })
   firstName: string;
 
-  @Transform(({ value }) => value.trim())
   @Column({ name: 'last_name' })
   lastName: string;
 
-  @Transform(({ value }) => value.trim())
   @Index('unique_email_active_users', ['email'], {
     unique: true,
     where: 'deleted_at IS NULL',
