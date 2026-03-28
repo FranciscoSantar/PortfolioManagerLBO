@@ -6,6 +6,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { PortfoliosModule } from './portfolios/portfolios.module';
+import { AssetsModule } from './assets/assets.module';
+import { AssetTypesModule } from './asset_types/asset_types.module';
+import { TransactionsModule } from './transactions/transactions.module';
 import configuration from '../config/configuration';
 
 @Module({
@@ -31,8 +34,11 @@ import configuration from '../config/configuration';
 
     UsersModule,
     PortfoliosModule,
+    AssetsModule,
+    AssetTypesModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
