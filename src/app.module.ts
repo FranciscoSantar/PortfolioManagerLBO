@@ -4,13 +4,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UsersModule } from './users/users.module';
+import { PortfoliosModule } from './portfolios/portfolios.module';
 import configuration from '../config/configuration';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [configuration]
+      load: [configuration],
     }),
 
     TypeOrmModule.forRootAsync({
@@ -22,10 +24,15 @@ import configuration from '../config/configuration';
         username: config.get('database.username'),
         password: config.get('database.password'),
         database: config.get('database.name'),
+        synchronize: true,
+        autoLoadEntities: true,
       }),
-    })
+    }),
+
+    UsersModule,
+    PortfoliosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
