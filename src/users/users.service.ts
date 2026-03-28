@@ -5,8 +5,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { Portfolio } from 'src/portfolios/entities/portfolio.entity';
-import { handlePostgresError } from 'src/common/utils/postgres-error-handler';
+import { Portfolio } from '..//portfolios/entities/portfolio.entity';
+import { handlePostgresError } from '../common/utils/postgres-error-handler';
 
 @Injectable()
 export class UsersService {
@@ -56,11 +56,11 @@ export class UsersService {
   }
 
   async remove(id: string) {
-    this.findOne(id)
+    const user = await this.findOne(id)
 
     await this.dataSource.transaction(async (manager) => {
       await manager.softDelete(Portfolio, {
-        user: { id },
+        user
       });
 
       await manager.softDelete(User, { id });

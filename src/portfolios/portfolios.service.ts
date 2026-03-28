@@ -6,7 +6,7 @@ import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
 import { Portfolio } from './entities/portfolio.entity';
 import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
-import { Transaction } from 'src/transactions/entities/transaction.entity';
+import { Transaction } from '../transactions/entities/transaction.entity';
 
 @Injectable()
 export class PortfoliosService {
