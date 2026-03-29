@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CacheModule } from '@nestjs/cache-manager';
+import KeyvRedis from '@keyv/redis';
+
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -11,6 +14,7 @@ import { AssetTypesModule } from './asset_types/asset_types.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { YahooFinanceModule } from './yahoo-finance/yahoo-finance.module';
 import { SeedModule } from './seed/seed.module';
+import { AuthModule } from './auth/auth.module';
 import configuration from '../config/configuration';
 
 @Module({
@@ -34,6 +38,19 @@ import configuration from '../config/configuration';
       }),
     }),
 
+    CacheModule.registerAsync({
+      isGlobal: true,
+      inject: [ConfigService],
+      useFactory: async (config: ConfigService) => {
+        const cacheHost = config.get('cache.host');
+        const cachePort = config.get('cache.port')
+        return {
+          stores: [
+            new KeyvRedis(`redis://${cacheHost}:${cachePort}`),
+          ],
+        }
+      },
+    }),
     UsersModule,
     PortfoliosModule,
     AssetsModule,
@@ -41,6 +58,7 @@ import configuration from '../config/configuration';
     TransactionsModule,
     YahooFinanceModule,
     SeedModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
