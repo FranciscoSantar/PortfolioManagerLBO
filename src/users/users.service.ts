@@ -22,17 +22,19 @@ export class UsersService {
     try {
       const user = this.userRepository.create(createUserDto);
       await this.userRepository.save(user);
-      return user;
+      const { id, firstName, lastName, email } = user;
+      return {
+        id,
+        firstName,
+        lastName,
+        email
+      };
     } catch (error) {
       handlePostgresError(error)
     }
   }
 
-  findAll() {
-    return `This action returns all users`;
-  }
-
-  async findOne(id: string) {
+  async findById(id: string) {
     try {
       const user = await this.userRepository.findOne({
         where: {
@@ -42,7 +44,7 @@ export class UsersService {
       })
 
       if (!user) {
-        throw new NotFoundException(`User with id = ${id} was not found.`)
+        throw new NotFoundException(`User not found`)
       }
 
       return user;
@@ -51,12 +53,32 @@ export class UsersService {
     }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async findByEmailForLogin(email: string) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          email,
+          deletedAt: IsNull()
+        },
+        select: {
+          id: true,
+          email: true,
+          password: true,
+        }
+      })
+
+      if (!user) {
+        throw new NotFoundException(`User not found`)
+      }
+
+      return user;
+    } catch (error) {
+      handlePostgresError(error)
+    }
   }
 
   async remove(id: string) {
-    const user = await this.findOne(id)
+    const user = await this.findById(id)
 
     await this.dataSource.transaction(async (manager) => {
       await manager.softDelete(Portfolio, {
