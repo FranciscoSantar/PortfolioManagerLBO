@@ -22,16 +22,4 @@ export class AuthController {
   login(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
   }
-
-  @Get('auth')
-  @UseGuards(AuthGuard())
-  privateRoute(
-    @User('id') userId: string
-  ) {
-    return {
-      ok: true,
-      userId
-    }
-  }
-
 }
