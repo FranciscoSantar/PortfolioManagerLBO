@@ -27,6 +27,14 @@ export class PortfolioAsset {
   })
   quantity: string;
 
+  @Column({
+    name: 'avg_buy_price',
+    type: 'decimal',
+    precision: 12,
+    scale: 4
+  })
+  averageBuyPrice: string;
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt: Date;
 

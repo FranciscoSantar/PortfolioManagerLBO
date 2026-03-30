@@ -7,12 +7,14 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 
 import { User } from '../auth/decorators/user.decorator';
 import { PortfoliosService } from './portfolios.service';
 import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
+import { PagintionPortfolioDto } from './dto/pagination-portfolio.dto';
 
 @Controller('portfolios')
 export class PortfoliosController {
@@ -28,9 +30,10 @@ export class PortfoliosController {
 
   @Get()
   findAll(
-    @User('id') userId: string
+    @User('id') userId: string,
+    @Query() paginationDto: PagintionPortfolioDto
   ) {
-    return this.portfoliosService.findAll(userId);
+    return this.portfoliosService.findAll(userId, paginationDto);
   }
 
   @Get(':id')
@@ -38,7 +41,7 @@ export class PortfoliosController {
     @Param('id', ParseUUIDPipe) id: string,
     @User('id') userId: string
   ) {
-    return this.portfoliosService.findOne(id, userId);
+    return this.portfoliosService.getPortfolioData(id, userId);
   }
 
   @Patch(':id')
