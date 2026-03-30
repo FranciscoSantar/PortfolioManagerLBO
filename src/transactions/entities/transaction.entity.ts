@@ -8,6 +8,12 @@ export enum TransactionType {
   SELL = 'SELL'
 }
 
+export enum CommissionType {
+  FIXED = 'FIXED',
+  PERCENTAGE = 'PERCENTAGE',
+  NONE = 'NONE'
+}
+
 @Entity()
 export class Transaction {
 
@@ -22,15 +28,23 @@ export class Transaction {
   quantity: string;
 
   @Column({
+    name: 'transaction_type',
     type: 'enum',
     enum: TransactionType
   })
+
   operation: TransactionType
 
+  @Column({
+    name: 'commission_type',
+    type: 'enum',
+    enum: CommissionType
+  })
+  commissionType: CommissionType
 
   @Column({
     type: 'decimal',
-    precision: 10,
+    precision: 12,
     scale: 4,
     name: 'unit_price'
   })
@@ -42,7 +56,7 @@ export class Transaction {
   @Column({
     type: 'decimal',
     precision: 12,
-    scale: 6,
+    scale: 4,
     default: '0',
 
   })

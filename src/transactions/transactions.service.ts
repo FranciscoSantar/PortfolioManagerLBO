@@ -3,7 +3,7 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { Transaction, TransactionType } from './entities/transaction.entity';
+import { CommissionType, Transaction, TransactionType } from './entities/transaction.entity';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { PortfoliosService } from '../portfolios/portfolios.service';
 import { AssetsService } from '../assets/assets.service';
@@ -25,6 +25,24 @@ export class TransactionsService {
     private readonly yahooFinanceService: YahooFinanceService
   ) { }
 
+
+  getCommissionAmout(quantity: number, unitPrice: number, commission: number, commissionType: CommissionType): number {
+    if (commission === 0 || commissionType === CommissionType.NONE) {
+      return 0
+    }
+
+    if (commissionType === CommissionType.FIXED) {
+      return commission
+    }
+
+    if (commission > 1) {
+      throw new BadRequestException('Percentage commission can not be higher than 1')
+    }
+
+    return quantity * unitPrice * commission
+  }
+
+
   async create(createTransactionDto: CreateTransactionDto, portfolioId: string, userId: string) {
     try {
       const { assetId, ...transactionData } = createTransactionDto
@@ -33,6 +51,20 @@ export class TransactionsService {
 
       // Transaction to ensure atomicity between Transactions and portfolio Assets operations
       await this.dataSource.transaction(async (manager) => {
+        let portfolioAssetNewQuantity = 0
+
+        // Get current price of portfolio Asset
+        if (!transactionData.unitPrice) {
+          const portfolioAssetCurrentPrice = await this.yahooFinanceService.getPriceByTicker(asset.ticker)
+          transactionData.unitPrice = String(portfolioAssetCurrentPrice.price)
+        }
+
+        const { quantity, unitPrice, commission, commissionType } = transactionData
+        const parsedQuantity = Number(quantity)
+        const parsedUnitPrice = Number(unitPrice)
+        const parsedCommission = Number(commission)
+
+        const commissionAmount = this.getCommissionAmout(parsedQuantity, parsedUnitPrice, parsedCommission, commissionType)
 
         const portfolioAsset = await manager.findOne(PortfolioAsset, {
           where: {
@@ -47,45 +79,55 @@ export class TransactionsService {
         if (!portfolioAsset) {
           if (transactionData.operation === TransactionType.SELL) {
             throw new BadRequestException(`Can not Sell because the asset ${asset.ticker} does not exist in the Portfolio`)
-
           }
+
           // First Buy, create PortfolioAsset
           const portfolioAsset = manager.create(PortfolioAsset, {
             portfolio: { id: portfolioId },
             asset: { id: assetId },
-            quantity: transactionData.quantity
+            quantity: transactionData.quantity,
+            averageBuyPrice: String((parsedQuantity * parsedUnitPrice + commissionAmount) / parsedQuantity),
           })
           await manager.save(portfolioAsset);
 
         } else {
 
           // If Asset already exists in the portfolio, update quantity
-          const transactionQuantity = Number(transactionData.quantity)
-          const actualPortfolioAssetQuantity = Number(portfolioAsset.quantity)
+          const parsedTransactionQuantity = Number(transactionData.quantity)
+          const parsedPortfolioAssetQuantity = Number(portfolioAsset.quantity)
+          const parsedPortfolioAssetAvgBuyPrice = Number(portfolioAsset.averageBuyPrice)
 
-          if (transactionData.operation === TransactionType.SELL && actualPortfolioAssetQuantity < transactionQuantity) {
+          if (transactionData.operation === TransactionType.SELL && parsedPortfolioAssetQuantity < parsedTransactionQuantity) {
             throw new BadRequestException(`Insufficient balance to complete the sell order. You have ${portfolioAsset.quantity} of ${portfolioAsset.asset.ticker}`)
           }
+
           // Update Quantity
-          const newQuantity = transactionData.operation === TransactionType.SELL
-            ? actualPortfolioAssetQuantity - transactionQuantity
-            : actualPortfolioAssetQuantity + transactionQuantity;
+          if (transactionData.operation === TransactionType.SELL) {
+
+            portfolioAssetNewQuantity = parsedPortfolioAssetQuantity - parsedTransactionQuantity
+
+          } else {
+            //Update Quantity and Average Buy Price
+            portfolioAssetNewQuantity = parsedPortfolioAssetQuantity + parsedTransactionQuantity
+            const portfolioAssetNewPrice = Number(transactionData.unitPrice)
+            const portfolioAssetNewAvgBuyPrice =
+              (parsedPortfolioAssetQuantity * parsedPortfolioAssetAvgBuyPrice + (parsedTransactionQuantity * portfolioAssetNewPrice) + commissionAmount) / portfolioAssetNewQuantity
+
+            portfolioAsset.averageBuyPrice = String(portfolioAssetNewAvgBuyPrice)
+          }
 
           // Delete if the asset has been completely sold
-          if (newQuantity === 0) {
+          if (portfolioAssetNewQuantity === 0) {
             await manager.remove(portfolioAsset)
           } else {
-            portfolioAsset.quantity = String(newQuantity)
+            portfolioAsset.quantity = String(portfolioAssetNewQuantity)
             await manager.save(PortfolioAsset, portfolioAsset)
           }
 
         }
 
         // Always create a transaction
-        if (!transactionData.unitPrice) {
-          const assetPrice = await this.yahooFinanceService.getPriceByTicker(asset.ticker)
-          transactionData.unitPrice = String(assetPrice.price)
-        }
+
         const transaction = manager.create(Transaction, {
           ...transactionData,
           portfolio: { id: portfolio.id },
