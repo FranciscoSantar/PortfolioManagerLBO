@@ -6,9 +6,10 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
+
+import { User } from '../auth/decorators/user.decorator';
 import { PortfoliosService } from './portfolios.service';
 import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
@@ -18,19 +19,24 @@ export class PortfoliosController {
   constructor(private readonly portfoliosService: PortfoliosService) { }
 
   @Post()
-  create(@Body() createPortfolioDto: CreatePortfolioDto) {
-    return this.portfoliosService.create(createPortfolioDto, createPortfolioDto.userId);
+  create(
+    @Body() createPortfolioDto: CreatePortfolioDto,
+    @User('id') userId: string
+  ) {
+    return this.portfoliosService.create(createPortfolioDto, userId);
   }
 
   @Get()
-  findAll(@Query('userId') userId: string) {
+  findAll(
+    @User('id') userId: string
+  ) {
     return this.portfoliosService.findAll(userId);
   }
 
   @Get(':id')
   findOne(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('userId') userId: string
+    @User('id') userId: string
   ) {
     return this.portfoliosService.findOne(id, userId);
   }
@@ -39,7 +45,7 @@ export class PortfoliosController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updatePortfolioDto: UpdatePortfolioDto,
-    @Query('userId') userId: string
+    @User('id') userId: string
   ) {
     return this.portfoliosService.update(id, updatePortfolioDto, userId);
   }
@@ -47,7 +53,7 @@ export class PortfoliosController {
   @Delete(':id')
   remove(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('userId') userId: string
+    @User('id') userId: string
   ) {
     return this.portfoliosService.remove(id, userId);
   }

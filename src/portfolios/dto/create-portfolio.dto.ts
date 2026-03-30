@@ -18,7 +18,4 @@ export class CreatePortfolioDto {
   @IsOptional()
   @MinLength(3)
   description?: string;
-
-  @IsString()
-  userId: string;
 }

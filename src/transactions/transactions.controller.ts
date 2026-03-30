@@ -1,34 +1,36 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseUUIDPipe } from '@nestjs/common';
+
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { User } from '../auth/decorators/user.decorator';
 
 @Controller('portfolios/:portfolioId/transactions')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) { }
 
-  @Post('')
+  @Post()
   create(
+    @Param('portfolioId', ParseUUIDPipe) portfolioId: string,
     @Body() createTransactionDto: CreateTransactionDto,
-    @Query('userId', ParseUUIDPipe) userId: string,
-    @Param('portfolioId', ParseUUIDPipe) portfolioId: string
+    @User('id') userId: string,
   ) {
     return this.transactionsService.create(createTransactionDto, portfolioId, userId);
   }
 
   @Get()
-  findAll(
-    @Query('userId', ParseUUIDPipe) userId: string,
-    @Param('portfolioId', ParseUUIDPipe) portfolioId: string
+  findAllTransactionsInPortfolio(
+    @Param('portfolioId', ParseUUIDPipe) portfolioId: string,
+    @User('id') userId: string,
   ) {
-    return this.transactionsService.findAll(portfolioId, userId);
+    return this.transactionsService.findAllTransactionsInPortfolio(portfolioId, userId);
   }
 
   @Get(':id')
-  findOne(
+  findOneTransactionInPortfolio(
+    @Param('portfolioId', ParseUUIDPipe) portfolioId: string,
     @Param('id') id: string,
-    @Query('userId', ParseUUIDPipe) userId: string,
-    @Param('portfolioId', ParseUUIDPipe) portfolioId: string
+    @User('id') userId: string,
   ) {
-    return this.transactionsService.findOne(id, portfolioId, userId);
+    return this.transactionsService.findOneTransactionInPortfolio(id, portfolioId, userId);
   }
 }
