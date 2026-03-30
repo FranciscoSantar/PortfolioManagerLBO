@@ -94,6 +94,7 @@ export class PortfolioAssetsService {
       totalAssets += 1
 
       return {
+        id: portfolioAsset.id,
         info: assetInfo,
         quantity: roundToDecimals(parsedPortfolioAssetQuantity),
         changePercent: roundToDecimals(portfolioAssetChangePercent),
@@ -179,7 +180,7 @@ export class PortfolioAssetsService {
   private orderPortfolioAssets(response: ResponsePortfolioAssetDto, queryDto: GetPortfolioAssetsQueryParamsDto) {
     const { orderBy = OrderPortolioAsstesByEnum.VALUE } = queryDto ?? {}
     const sortMap: Record<OrderPortolioAsstesByEnum, (a: AssetDataWithCurrentValue, b: AssetDataWithCurrentValue) => number> = {
-      [OrderPortolioAsstesByEnum.VALUE]: (a, b) => b.totalValue - a.totalValue,
+      [OrderPortolioAsstesByEnum.VALUE]: (a, b) => b.unitPrice - a.unitPrice,
       [OrderPortolioAsstesByEnum.PERCENTAGE]: (a, b) => b.changePercent - a.changePercent,
     }
     response.assets.sort(sortMap[orderBy])

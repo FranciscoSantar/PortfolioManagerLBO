@@ -6,6 +6,7 @@ export class ShortResponsePortfolioAssetDto {
 }
 
 export class AssetDataWithCurrentValue {
+  id: string;
   info: ShortResponseAssetDto;
   totalValue: number;
   quantity: number;
