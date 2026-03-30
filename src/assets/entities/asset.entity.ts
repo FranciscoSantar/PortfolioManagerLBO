@@ -12,6 +12,7 @@ import {
 
 import { AssetType } from '../../asset_types/entities/asset_type.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
+import { PortfolioAsset } from 'src/portfolio-assets/entities/portfolio-asset.entity';
 
 @Entity()
 export class Asset {
@@ -43,4 +44,7 @@ export class Asset {
 
   @OneToMany(() => Transaction, (transaction) => transaction.asset)
   transactions: Transaction[];
+
+  @OneToMany(() => PortfolioAsset, (portfolioAsset) => portfolioAsset.asset)
+  portfolioAsset: PortfolioAsset[];
 }

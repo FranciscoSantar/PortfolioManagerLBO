@@ -13,6 +13,7 @@ import {
 
 import { User } from '../../users/entities/user.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
+import { PortfolioAsset } from 'src/portfolio-assets/entities/portfolio-asset.entity';
 
 export enum BaseCoin {
   ARS = 'ARS',
@@ -35,7 +36,7 @@ export class Portfolio {
     type: 'enum',
     enum: BaseCoin,
   })
-  baseCoin: string;
+  baseCoin: BaseCoin;
 
   @Column({ nullable: true })
   description: string;
@@ -55,4 +56,7 @@ export class Portfolio {
 
   @OneToMany(() => Transaction, (transaction) => transaction.portfolio)
   transactions: Transaction[];
+
+  @OneToMany(() => PortfolioAsset, (portfolioAsset) => portfolioAsset.portfolio)
+  assets: PortfolioAsset[];
 }
