@@ -10,17 +10,17 @@ export class SeedService {
   constructor(
     private readonly assetTypesService: AssetTypesService,
     private readonly assetService: AssetsService,
-    private readonly priceService: YahooFinanceService
+    private readonly yahooFinanceService: YahooFinanceService
   ) { }
   async populateDB() {
     await this.assetTypesService.saveForSeeding(ASSET_TYPES)
 
     // Start seeding stocks
-    const stocksAssetsDtos = await this.priceService.getDataForSeeding(STOCKS_TICKERS)
+    const stocksAssetsDtos = await this.yahooFinanceService.getDataForSeeding(STOCKS_TICKERS)
     await this.assetService.saveForSeeding(stocksAssetsDtos, 'STOCK')
 
     // Then, Cryptos
-    const cryptosAssetsDtos = await this.priceService.getDataForSeeding(CRYPTO_SYMBOLS)
+    const cryptosAssetsDtos = await this.yahooFinanceService.getDataForSeeding(CRYPTO_SYMBOLS)
     await this.assetService.saveForSeeding(cryptosAssetsDtos, 'CRYPTO')
   }
 }
