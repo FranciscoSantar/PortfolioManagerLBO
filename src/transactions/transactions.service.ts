@@ -8,7 +8,7 @@ import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { PortfoliosService } from '../portfolios/portfolios.service';
 import { AssetsService } from '../assets/assets.service';
 import { PortfolioAsset } from '../portfolio-assets/entities/portfolio-asset.entity';
-import { YahooFinanceService } from 'src/yahoo-finance/yahoo-finance.service';
+import { YahooFinanceService } from '../yahoo-finance/yahoo-finance.service';
 
 @Injectable()
 export class TransactionsService {
@@ -24,24 +24,6 @@ export class TransactionsService {
     private readonly assetService: AssetsService,
     private readonly yahooFinanceService: YahooFinanceService
   ) { }
-
-
-  getCommissionAmout(quantity: number, unitPrice: number, commission: number, commissionType: CommissionType): number {
-    if (commission === 0 || commissionType === CommissionType.NONE) {
-      return 0
-    }
-
-    if (commissionType === CommissionType.FIXED) {
-      return commission
-    }
-
-    if (commission > 1) {
-      throw new BadRequestException('Percentage commission can not be higher than 1')
-    }
-
-    return quantity * unitPrice * commission
-  }
-
 
   async create(createTransactionDto: CreateTransactionDto, portfolioId: string, userId: string) {
     try {
@@ -176,5 +158,46 @@ export class TransactionsService {
     } catch (error) {
       handlePostgresError(error)
     }
+  }
+
+  async findAllTransactionsOfPortfolioAsset(portfolioId: string, assetId: string, userId: string) {
+    try {
+      const portfolio = await this.portfolioService.findOne(portfolioId, userId);
+      const asset = await this.assetService.findOne(assetId);
+
+      const transactions = await this.transactionRepository.find({
+        where: {
+          portfolio: {
+            id: portfolioId,
+          },
+          asset: {
+            id: assetId
+          }
+        }
+      })
+
+      return {
+        transactions,
+        asset
+      };
+    } catch (error) {
+      handlePostgresError(error)
+    }
+  }
+
+  private getCommissionAmout(quantity: number, unitPrice: number, commission: number, commissionType: CommissionType): number {
+    if (commission === 0 || commissionType === CommissionType.NONE) {
+      return 0
+    }
+
+    if (commissionType === CommissionType.FIXED) {
+      return commission
+    }
+
+    if (commission > 1) {
+      throw new BadRequestException('Percentage commission can not be higher than 1')
+    }
+
+    return quantity * unitPrice * commission
   }
 }

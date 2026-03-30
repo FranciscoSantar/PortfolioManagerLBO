@@ -33,4 +33,14 @@ export class TransactionsController {
   ) {
     return this.transactionsService.findOneTransactionInPortfolio(id, portfolioId, userId);
   }
+
+  @Get('assets/:assetId')
+  findTransactionsOfPortfolioAsset(
+    @Param('portfolioId', ParseUUIDPipe) portfolioId: string,
+    @Param('assetId', ParseUUIDPipe) assetId: string,
+    @User('id') userId: string,
+  ) {
+    return this.transactionsService.findAllTransactionsOfPortfolioAsset(portfolioId, assetId, userId);
+
+  }
 }
