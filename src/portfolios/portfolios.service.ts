@@ -9,7 +9,7 @@ import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { Transaction } from '../transactions/entities/transaction.entity';
 import { PortfolioAssetsService } from '../portfolio-assets/portfolio-assets.service';
 import { ShortResponseDto, ShortResponsePortfolioDto } from './dto/response-portfolio.dto';
-import { PagintionPortfolioDto } from './dto/pagination-portfolio.dto';
+import { GetPortfolioAssetsQueryParamsDto, PagintionPortfolioDto } from './dto/query-params-portfolio.dto';
 
 @Injectable()
 export class PortfoliosService {
@@ -71,10 +71,10 @@ export class PortfoliosService {
     };
   }
 
-  async getPortfolioData(id: string, userId: string) {
+  async getPortfolioData(id: string, userId: string, queryDto: GetPortfolioAssetsQueryParamsDto) {
     const portfolio = await this.findOne(id, userId)
     try {
-      const portfolioAssetsData = await this.portfolioAssetService.getInfoOfPortfolioAssets(id)
+      const portfolioAssetsData = await this.portfolioAssetService.getInfoOfPortfolioAssets(id, queryDto)
       return portfolioAssetsData
     } catch (error) {
       handlePostgresError(error)
@@ -123,8 +123,6 @@ export class PortfoliosService {
       if (!portfolio) {
         throw new NotFoundException(`Portfolio with ID = ${id} was not found`)
       }
-
-      const portfolioAssetsData = this.portfolioAssetService.getInfoOfPortfolioAssets(id)
       return portfolio;
     } catch (error) {
       handlePostgresError(error)

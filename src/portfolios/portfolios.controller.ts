@@ -14,7 +14,7 @@ import { User } from '../auth/decorators/user.decorator';
 import { PortfoliosService } from './portfolios.service';
 import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
-import { PagintionPortfolioDto } from './dto/pagination-portfolio.dto';
+import { GetPortfolioAssetsQueryParamsDto, PagintionPortfolioDto } from './dto/query-params-portfolio.dto';
 
 @Controller('portfolios')
 export class PortfoliosController {
@@ -39,9 +39,10 @@ export class PortfoliosController {
   @Get(':id')
   findOne(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query() queryDto: GetPortfolioAssetsQueryParamsDto,
     @User('id') userId: string
   ) {
-    return this.portfoliosService.getPortfolioData(id, userId);
+    return this.portfoliosService.getPortfolioData(id, userId, queryDto);
   }
 
   @Patch(':id')

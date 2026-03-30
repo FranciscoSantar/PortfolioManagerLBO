@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +11,7 @@ import { AssetPrice } from '../yahoo-finance/interfaces/asset-price.interface';
 import { AssetDataWithCurrentValue, ResponsePortfolioAssetDto, ShortResponsePortfolioAssetDto } from './dto/response-portfolio-asset.dto';
 import { ShortResponseAssetDto } from '../assets/dtos/response-asset.dto';
 import { roundToDecimals } from '../common/utils/float-parser';
+import { GetPortfolioAssetsQueryParamsDto, OrderPortolioAsstesByEnum } from '../portfolios/dto/query-params-portfolio.dto';
 
 @Injectable()
 export class PortfolioAssetsService {
@@ -45,12 +46,12 @@ export class PortfolioAssetsService {
     }
   }
 
-  async getInfoOfPortfolioAssets(portfolioId: string): Promise<ResponsePortfolioAssetDto> {
+  async getInfoOfPortfolioAssets(portfolioId: string, queryDto: GetPortfolioAssetsQueryParamsDto): Promise<ResponsePortfolioAssetDto> {
     let totalInvested = 0
     let totalAssets = 0
     let totalCurrentValue = 0
 
-    const portfolioAssets = await this.getPortfolioAssetsByPortfolioId(portfolioId)
+    const portfolioAssets = await this.getPortfolioAssetsByPortfolioId(portfolioId, queryDto)
 
     if (portfolioAssets.length === 0) {
       return {
@@ -94,22 +95,25 @@ export class PortfolioAssetsService {
 
       return {
         info: assetInfo,
-        totalValue: roundToDecimals(portfolioAssetTotalValue, 4),
-        quantity: parsedPortfolioAssetQuantity,
-        unitPrice: parsedPortfolioAssetCurrentValue,
+        quantity: roundToDecimals(parsedPortfolioAssetQuantity),
         changePercent: roundToDecimals(portfolioAssetChangePercent),
-        avgBuyPrice: parsedAverageBuyPrice
+        unitPrice: roundToDecimals(parsedPortfolioAssetCurrentValue, 4),
+        totalValue: roundToDecimals(portfolioAssetTotalValue, 4),
+        avgBuyPrice: roundToDecimals(parsedAverageBuyPrice, 4)
       }
     }))
 
     const totalChangePercent = ((totalCurrentValue - totalInvested) / totalInvested) * 100
-    return {
+    const response = {
       assets: portfolioAssetDataWithCurrentValue,
       totalAssets,
       totalInvested: roundToDecimals(totalInvested),
       totalChangePercent: roundToDecimals(totalChangePercent),
       totalValue: roundToDecimals(totalCurrentValue, 4)
     };
+
+    const orderedResponse = this.orderPortfolioAssets(response, queryDto)
+    return orderedResponse
   }
 
   async getSummaryOfPortfolio(portfolioId: string) {
@@ -150,13 +154,19 @@ export class PortfolioAssetsService {
     }
   }
 
-  private async getPortfolioAssetsByPortfolioId(portfolioId: string) {
+  private async getPortfolioAssetsByPortfolioId(portfolioId: string, queryDto?: GetPortfolioAssetsQueryParamsDto) {
+    const { filterBy } = queryDto ?? {}
+
+    const where: FindOptionsWhere<PortfolioAsset> = {
+      portfolio: { id: portfolioId }
+    }
+
+    if (filterBy) {
+      where.asset = { assetType: { type: filterBy } }
+    }
+
     const portfolioAssets = await this.portfolioAssetRepository.find({
-      where: {
-        portfolio: {
-          id: portfolioId
-        }
-      },
+      where,
       relations: {
         asset: {
           assetType: true
@@ -164,5 +174,15 @@ export class PortfolioAssetsService {
       }
     })
     return portfolioAssets
+  }
+
+  private orderPortfolioAssets(response: ResponsePortfolioAssetDto, queryDto: GetPortfolioAssetsQueryParamsDto) {
+    const { orderBy = OrderPortolioAsstesByEnum.VALUE } = queryDto ?? {}
+    const sortMap: Record<OrderPortolioAsstesByEnum, (a: AssetDataWithCurrentValue, b: AssetDataWithCurrentValue) => number> = {
+      [OrderPortolioAsstesByEnum.VALUE]: (a, b) => b.totalValue - a.totalValue,
+      [OrderPortolioAsstesByEnum.PERCENTAGE]: (a, b) => b.changePercent - a.changePercent,
+    }
+    response.assets.sort(sortMap[orderBy])
+    return response
   }
 }
