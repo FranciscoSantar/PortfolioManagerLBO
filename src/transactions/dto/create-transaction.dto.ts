@@ -1,6 +1,7 @@
-import { IsEnum, IsNumberString, IsOptional, IsUUID, Matches } from "class-validator";
+import { IsEnum, IsNumber, IsNumberString, IsOptional, IsPositive, IsUUID, Matches } from "class-validator";
 import { TransactionType } from "../entities/transaction.entity";
 import { Transform } from "class-transformer";
+import { ApiProperty } from "@nestjs/swagger";
 
 export enum CommissionType {
   FIXED = 'FIXED',
@@ -9,24 +10,22 @@ export enum CommissionType {
 }
 
 export class CreateTransactionDto {
-  @IsNumberString()
-  @Transform(({ value }) => value.trim())
-  @Matches(/^[^-].*/, { message: 'quantity should be a positive number' })
-  quantity: string;
+  @IsNumber()
+  @IsPositive()
+  quantity: number;
 
   @IsEnum(TransactionType)
   operation: TransactionType;
 
   @IsOptional()
-  @IsNumberString()
-  @Matches(/^[^-].*/, { message: 'unitPrice should be a positive number' })
-  unitPrice?: string;
+  @IsNumber()
+  @IsPositive()
+  unitPrice?: number;
 
   @IsOptional()
-  @Transform(({ value }) => value.trim())
-  @IsNumberString()
-  @Matches(/^[^-].*/, { message: 'commission should be a positive number' })
-  commission?: string;
+  @IsNumber()
+  @IsPositive()
+  commission?: number;
 
   @IsEnum(CommissionType)
   commissionType: CommissionType;

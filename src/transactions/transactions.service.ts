@@ -39,7 +39,7 @@ export class TransactionsService {
         // Get current price of portfolio Asset
         if (!transactionData.unitPrice) {
           const portfolioAssetCurrentPrice = await this.yahooFinanceService.getPriceByTicker(asset.ticker)
-          transactionData.unitPrice = String(portfolioAssetCurrentPrice.price)
+          transactionData.unitPrice = Number(portfolioAssetCurrentPrice.price)
         }
 
         const { quantity, unitPrice, commission, commissionType } = transactionData
@@ -68,7 +68,7 @@ export class TransactionsService {
           const portfolioAsset = manager.create(PortfolioAsset, {
             portfolio: { id: portfolioId },
             asset: { id: assetId },
-            quantity: transactionData.quantity,
+            quantity: String(transactionData.quantity),
             averageBuyPrice: String((parsedQuantity * parsedUnitPrice + commissionAmount) / parsedQuantity),
           })
           await manager.save(portfolioAsset);
@@ -76,10 +76,10 @@ export class TransactionsService {
         } else {
 
           // If Asset already exists in the portfolio, update quantity
-          const parsedTransactionQuantity = Number(transactionData.quantity)
+          const parsedTransactionQuantity = transactionData.quantity
+          const parsedPortfolioAssetUnitPrice = transactionData.unitPrice
           const parsedPortfolioAssetQuantity = Number(portfolioAsset.quantity)
           const parsedPortfolioAssetAvgBuyPrice = Number(portfolioAsset.averageBuyPrice)
-          const parsedPortfolioAssetUnitPrice = Number(transactionData.unitPrice)
 
           if (transactionData.operation === TransactionType.SELL && parsedPortfolioAssetQuantity < parsedTransactionQuantity) {
             throw new BadRequestException(`Insufficient balance to complete the sell order. You have ${parsedPortfolioAssetQuantity} of ${portfolioAsset.asset.ticker}`)
@@ -113,7 +113,11 @@ export class TransactionsService {
         // Always create a transaction
 
         const transaction = manager.create(Transaction, {
-          ...transactionData,
+          quantity: String(transactionData.quantity),
+          operation: transactionData.operation,
+          unitPrice: transactionData.unitPrice ? String(transactionData.unitPrice) : undefined,
+          commission: transactionData.commission ? String(transactionData.commission) : undefined,
+          commissionType: transactionData.commissionType,
           commissionAmount: String(commissionAmount),
           portfolio: { id: portfolio.id },
           asset: { id: asset.id }
