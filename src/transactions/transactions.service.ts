@@ -125,7 +125,7 @@ export class TransactionsService {
     }
   }
 
-  async findAllTransactionsInPortfolio(portfolioId: string, userId: string, filterDto: FilterTransactionsByDto) {
+  async findAllTransactionsInPortfolio(portfolioId: string, userId: string, filterDto?: FilterTransactionsByDto) {
     const { fromDate, toDate, transactionType } = filterDto ?? {}
     const portfolio = await this.portfolioService.findOne(portfolioId, userId);
 

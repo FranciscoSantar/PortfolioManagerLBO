@@ -47,7 +47,7 @@ export class PortfolioAssetsService {
     }
   }
 
-  async getInfoOfPortfolioAssets(portfolioId: string, queryDto: GetPortfolioAssetsQueryParamsDto): Promise<ResponsePortfolioAssetDto> {
+  async getInfoOfPortfolioAssets(portfolioId: string, queryDto?: GetPortfolioAssetsQueryParamsDto): Promise<ResponsePortfolioAssetDto> {
     let totalInvested = 0
     let totalCurrentValue = 0
     const assetsTypesObjectCounter = this.getAssetsTypesCounterObject()
@@ -200,7 +200,7 @@ export class PortfolioAssetsService {
     return portfolioAssets
   }
 
-  private orderPortfolioAssets(response: ResponsePortfolioAssetDto, queryDto: GetPortfolioAssetsQueryParamsDto) {
+  private orderPortfolioAssets(response: ResponsePortfolioAssetDto, queryDto?: GetPortfolioAssetsQueryParamsDto) {
     const { orderBy = OrderPortolioAsstesByEnum.VALUE } = queryDto ?? {}
     const sortMap: Record<OrderPortolioAsstesByEnum, (a: AssetDataWithCurrentValue, b: AssetDataWithCurrentValue) => number> = {
       [OrderPortolioAsstesByEnum.VALUE]: (a, b) => b.unitPrice - a.unitPrice,

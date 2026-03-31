@@ -71,7 +71,7 @@ export class PortfoliosService {
     };
   }
 
-  async getPortfolioData(id: string, userId: string, queryDto: GetPortfolioAssetsQueryParamsDto) {
+  async getPortfolioData(id: string, userId: string, queryDto?: GetPortfolioAssetsQueryParamsDto) {
     const portfolio = await this.findOne(id, userId)
     try {
       const portfolioAssetsData = await this.portfolioAssetService.getInfoOfPortfolioAssets(id, queryDto)
