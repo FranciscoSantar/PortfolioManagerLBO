@@ -9,7 +9,7 @@ import { AssetPrice } from './interfaces/asset-price.interface';
 
 @Injectable()
 export class YahooFinanceService {
-  private readonly yf = new YahooFinance();
+  private readonly yf = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
   private readonly BATCH_SIZE = 20
   private readonly PRICE_CACHE_TTL = 1000 * 60 * 5
 
