@@ -10,6 +10,7 @@ import { Transaction } from '../transactions/entities/transaction.entity';
 import { PortfolioAssetsService } from '../portfolio-assets/portfolio-assets.service';
 import { ShortResponseDto, ShortResponsePortfolioDto } from './dto/response-portfolio.dto';
 import { GetPortfolioAssetsQueryParamsDto, PagintionPortfolioDto } from './dto/query-params-portfolio.dto';
+import { PortfolioAsset } from '../portfolio-assets/entities/portfolio-asset.entity';
 
 @Injectable()
 export class PortfoliosService {
@@ -98,6 +99,10 @@ export class PortfoliosService {
 
     await this.dataSource.transaction(async (manager) => {
       await manager.softDelete(Transaction, {
+        portfolio
+      });
+
+      await manager.softDelete(PortfolioAsset, {
         portfolio
       });
 
