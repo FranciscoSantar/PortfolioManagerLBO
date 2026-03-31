@@ -39,7 +39,7 @@ export class ReportsService {
 
     for (const assetData of portfolioData.assets) {
       const assetId = assetData.info.id
-      const assetTransactions = await this.transactionService.findAllTransactionsOfPortfolioAsset(portfolioId, assetId, userId)
+      const assetTransactions = await this.transactionService.findAllTransactionsOfPortfolioAssetEnties(portfolioId, assetId, userId)
 
       const transactionsDataForSheet = assetTransactions.transactions.map((transaction) => ({
         'Fecha': transaction.createdAt,
