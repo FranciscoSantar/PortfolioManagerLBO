@@ -69,7 +69,7 @@ export class YahooFinanceService {
 
     await this.cacheManager.set(assetPriceCacheKey, yahooFinanceAssetPrice, this.PRICE_CACHE_TTL)
 
-    return true;
+    return yahooFinanceAssetPrice;
   }
 
   async getAllPrices(assetsList: string[]) {
