@@ -19,6 +19,9 @@ export class AssetDataWithCurrentValueDto {
   @ApiProperty({ description: 'The total value of the asset in the portfolio', example: 5000 })
   totalValue: number;
 
+  @ApiProperty({ description: 'The total invested amount in the asset', example: 4500 })
+  totalInvested: number;
+
   @ApiProperty({ description: 'The quantity of the asset', example: 10 })
   quantity: number;
 

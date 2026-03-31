@@ -10,6 +10,8 @@ import { AssetsService } from '../assets/assets.service';
 import { PortfolioAsset } from '../portfolio-assets/entities/portfolio-asset.entity';
 import { YahooFinanceService } from '../yahoo-finance/yahoo-finance.service';
 import { FilterTransactionsByDto } from './dto/query-params.dto';
+import { ResponseAllTransactionsOfPortfolioAssetDto, ResponseTransactionsWithTotalCommissionDto, ShortResponseTransactionDto } from './dto/response-transaction.dto';
+import { AllTransactionsOfPortfolioAsset } from './interfaces/transaction.interface';
 
 @Injectable()
 export class TransactionsService {
@@ -26,14 +28,14 @@ export class TransactionsService {
     private readonly yahooFinanceService: YahooFinanceService
   ) { }
 
-  async create(createTransactionDto: CreateTransactionDto, portfolioId: string, userId: string) {
+  async create(createTransactionDto: CreateTransactionDto, portfolioId: string, userId: string): Promise<ShortResponseTransactionDto> {
     try {
       const { assetId, ...transactionData } = createTransactionDto
       const asset = await this.assetService.findOne(assetId)
       const portfolio = await this.portfolioService.findOne(portfolioId, userId);
 
       // Transaction to ensure atomicity between Transactions and portfolio Assets operations
-      await this.dataSource.transaction(async (manager) => {
+      const transaction = await this.dataSource.transaction(async (manager) => {
         let portfolioAssetNewQuantity = 0
 
         // Get current price of portfolio Asset
@@ -111,7 +113,6 @@ export class TransactionsService {
         }
 
         // Always create a transaction
-
         const transaction = manager.create(Transaction, {
           quantity: String(transactionData.quantity),
           operation: transactionData.operation,
@@ -123,13 +124,22 @@ export class TransactionsService {
           asset: { id: asset.id }
         })
         await manager.save(transaction);
+        return transaction;
       });
+
+      return {
+        id: transaction.id,
+        quantity: Number(transaction.quantity),
+        operation: transaction.operation,
+        unitPrice: Number(transaction.unitPrice),
+        commission: Number(transaction.commissionAmount)
+      }
     } catch (error) {
       handlePostgresError(error)
     }
   }
 
-  async findAllTransactionsInPortfolio(portfolioId: string, userId: string, filterDto?: FilterTransactionsByDto) {
+  async findAllTransactionsInPortfolio(portfolioId: string, userId: string, filterDto?: FilterTransactionsByDto): Promise<ResponseTransactionsWithTotalCommissionDto> {
     const { fromDate, toDate, transactionType } = filterDto ?? {}
     const portfolio = await this.portfolioService.findOne(portfolioId, userId);
 
@@ -159,15 +169,23 @@ export class TransactionsService {
       }
     })
 
+    const transactionsResponsesDto = transactions.map(transaction => ({
+      id: transaction.id,
+      quantity: Number(transaction.quantity),
+      operation: transaction.operation,
+      unitPrice: Number(transaction.unitPrice),
+      commission: Number(transaction.commissionAmount),
+    }))
+
     const totalComissionsAmount = transactions.reduce((totalComissions, transaction) => totalComissions + Number(transaction.commissionAmount), 0)
 
     return {
-      transactions,
-      totalComissionsAmount
+      transactions: transactionsResponsesDto,
+      totalCommission: totalComissionsAmount
     };
   }
 
-  async findOneTransactionInPortfolio(id: string, portfolioId: string, userId: string) {
+  async findOneTransactionInPortfolio(id: string, portfolioId: string, userId: string): Promise<ShortResponseTransactionDto> {
     try {
       const portfolio = await this.portfolioService.findOne(portfolioId, userId);
       const transaction = await this.transactionRepository.findOne({
@@ -183,13 +201,19 @@ export class TransactionsService {
         throw new NotFoundException(`Transaction with id ${id} was not found.`);
       }
 
-      return transaction;
+      return {
+        id: transaction.id,
+        quantity: Number(transaction.quantity),
+        operation: transaction.operation,
+        unitPrice: Number(transaction.unitPrice),
+        commission: Number(transaction.commissionAmount)
+      };
     } catch (error) {
       handlePostgresError(error)
     }
   }
 
-  async findAllTransactionsOfPortfolioAsset(portfolioId: string, assetId: string, userId: string) {
+  async findAllTransactionsOfPortfolioAsset(portfolioId: string, assetId: string, userId: string): Promise<ResponseAllTransactionsOfPortfolioAssetDto> {
     try {
       const portfolio = await this.portfolioService.findOne(portfolioId, userId);
       const asset = await this.assetService.findOne(assetId);
@@ -201,7 +225,55 @@ export class TransactionsService {
           },
           asset: {
             id: assetId
+          },
+        },
+        relations: {
+          asset: {
+            assetType: true
           }
+        },
+        order: {
+          createdAt: 'DESC'
+        }
+      })
+
+      const transactionsResponsesDto = transactions.map(transaction => ({
+        id: transaction.id,
+        quantity: Number(transaction.quantity),
+        operation: transaction.operation,
+        unitPrice: Number(transaction.unitPrice),
+        commission: Number(transaction.commissionAmount),
+      }))
+
+      const assetResponseDto = {
+        id: asset.id,
+        name: asset.name,
+        ticker: asset.ticker,
+        type: asset.assetType.type
+      }
+
+      return {
+        transactions: transactionsResponsesDto,
+        asset: assetResponseDto
+      };
+    } catch (error) {
+      handlePostgresError(error)
+    }
+  }
+
+  async findAllTransactionsOfPortfolioAssetEnties(portfolioId: string, assetId: string, userId: string): Promise<AllTransactionsOfPortfolioAsset> {
+    try {
+      const portfolio = await this.portfolioService.findOne(portfolioId, userId);
+      const asset = await this.assetService.findOne(assetId);
+
+      const transactions = await this.transactionRepository.find({
+        where: {
+          portfolio: {
+            id: portfolioId,
+          },
+          asset: {
+            id: assetId
+          },
         },
         order: {
           createdAt: 'DESC'
