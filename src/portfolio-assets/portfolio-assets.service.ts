@@ -7,7 +7,7 @@ import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { PortfolioAsset } from './entities/portfolio-asset.entity';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { YahooFinanceService } from '../yahoo-finance/yahoo-finance.service';
-import { AssetDataWithCurrentValue, ResponsePortfolioAssetDto, ShortResponsePortfolioAssetDto } from './dto/response-portfolio-asset.dto';
+import { AssetDataWithCurrentValueDto, ResponsePortfolioAssetDto, ShortResponsePortfolioAssetDto } from './dto/response-portfolio-asset.dto';
 import { ShortResponseAssetDto } from '../assets/dtos/response-asset.dto';
 import { roundToDecimals } from '../common/utils/float-parser';
 import { GetPortfolioAssetsQueryParamsDto, OrderPortolioAsstesByEnum } from '../portfolios/dto/query-params-portfolio.dto';
@@ -70,7 +70,7 @@ export class PortfolioAssetsService {
     await this.yahooFinanceService.getAllPrices(portfolioAssetsTickers)
 
 
-    const portfolioAssetDataWithCurrentValue: AssetDataWithCurrentValue[] = await Promise.all(portfolioAssets.map(async (portfolioAsset: PortfolioAsset) => {
+    const portfolioAssetDataWithCurrentValueDto: AssetDataWithCurrentValueDto[] = await Promise.all(portfolioAssets.map(async (portfolioAsset: PortfolioAsset) => {
 
       const assetInfo: ShortResponseAssetDto = {
         id: portfolioAsset.asset.id,
@@ -95,7 +95,7 @@ export class PortfolioAssetsService {
       assetsTypesObjectCounter[portfolioAsset.asset.assetType.type] += 1
 
       return {
-        id: portfolioAsset.id,
+        portfolioAssetId: portfolioAsset.id,
         info: assetInfo,
         quantity: roundToDecimals(parsedPortfolioAssetQuantity),
         roi: roundToDecimals(portfolioAssetChangePercent),
@@ -109,7 +109,7 @@ export class PortfolioAssetsService {
 
     const totalChangePercent = ((totalCurrentValue - totalInvested) / totalInvested) * 100
     const response = {
-      assets: portfolioAssetDataWithCurrentValue,
+      assets: portfolioAssetDataWithCurrentValueDto,
       totalAssets: portfolioAssets.length,
       totalRoi: roundToDecimals(totalChangePercent),
       totalInvested: roundToDecimals(totalInvested),
@@ -202,7 +202,7 @@ export class PortfolioAssetsService {
 
   private orderPortfolioAssets(response: ResponsePortfolioAssetDto, queryDto?: GetPortfolioAssetsQueryParamsDto): ResponsePortfolioAssetDto {
     const { orderBy = OrderPortolioAsstesByEnum.VALUE } = queryDto ?? {}
-    const sortMap: Record<OrderPortolioAsstesByEnum, (a: AssetDataWithCurrentValue, b: AssetDataWithCurrentValue) => number> = {
+    const sortMap: Record<OrderPortolioAsstesByEnum, (a: AssetDataWithCurrentValueDto, b: AssetDataWithCurrentValueDto) => number> = {
       [OrderPortolioAsstesByEnum.VALUE]: (a, b) => b.unitPrice - a.unitPrice,
       [OrderPortolioAsstesByEnum.PERCENTAGE]: (a, b) => b.roi - a.roi,
     }
