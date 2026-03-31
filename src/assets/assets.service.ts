@@ -69,7 +69,6 @@ export class AssetsService {
           ticker
         }
       })
-      console.log(asset)
       if (!asset) {
         throw new NotFoundException(`Asset with ticker: ${ticker} does not exists.`)
       }

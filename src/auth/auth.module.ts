@@ -20,7 +20,6 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
       useFactory: async (config: ConfigService) => {
         const jwtSecret = config.get('jwtSecret');
         const jwtExpireTime = config.get('jwtExpireTime');
-        console.log("jwtExpireTime: ", jwtExpireTime)
         if (!jwtSecret) {
           throw new Error('Environment variable JWT_SECRET should be defined before running the app')
         }
