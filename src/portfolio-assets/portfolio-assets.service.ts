@@ -7,12 +7,12 @@ import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager'
 import { PortfolioAsset } from './entities/portfolio-asset.entity';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { YahooFinanceService } from '../yahoo-finance/yahoo-finance.service';
-import { AssetPrice } from '../yahoo-finance/interfaces/asset-price.interface';
 import { AssetDataWithCurrentValue, ResponsePortfolioAssetDto, ShortResponsePortfolioAssetDto } from './dto/response-portfolio-asset.dto';
 import { ShortResponseAssetDto } from '../assets/dtos/response-asset.dto';
 import { roundToDecimals } from '../common/utils/float-parser';
 import { GetPortfolioAssetsQueryParamsDto, OrderPortolioAsstesByEnum } from '../portfolios/dto/query-params-portfolio.dto';
-import { AssetTypeEnum } from 'src/asset_types/entities/asset_type.entity';
+import { AssetTypeEnum } from '../asset_types/entities/asset_type.entity';
+import { YahooAssetPriceDto } from '../yahoo-finance/dto/yahoo-asset-price.dto';
 
 @Injectable()
 export class PortfolioAssetsService {
@@ -80,7 +80,7 @@ export class PortfolioAssetsService {
       }
 
       const assetPriceCacheKey = this.yahooFinanceService.getPriceCachingKey(portfolioAsset.asset.ticker)
-      const portfolioAssetCurrentValue = await this.cacheManager.get<AssetPrice>(assetPriceCacheKey)
+      const portfolioAssetCurrentValue = await this.cacheManager.get<YahooAssetPriceDto>(assetPriceCacheKey)
 
       const parsedPortfolioAssetCurrentValue = Number(portfolioAssetCurrentValue?.price)
       const parsedPortfolioAssetQuantity = Number(portfolioAsset.quantity)
@@ -167,7 +167,7 @@ export class PortfolioAssetsService {
     let totalValue = 0;
     for (const portfolioAsset of portfolioAssets) {
       const assetPriceCacheKey = this.yahooFinanceService.getPriceCachingKey(portfolioAsset.asset.ticker)
-      const cachedPrice = await this.cacheManager.get<AssetPrice>(assetPriceCacheKey)
+      const cachedPrice = await this.cacheManager.get<YahooAssetPriceDto>(assetPriceCacheKey)
       if (cachedPrice?.price) {
         totalValue += Number(portfolioAsset.quantity) * Number(cachedPrice.price)
       }

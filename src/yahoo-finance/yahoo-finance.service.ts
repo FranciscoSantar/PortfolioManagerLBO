@@ -5,7 +5,7 @@ import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 import { ShortAssetYahooFinance } from './interfaces/asset-yahoo-finance.interface';
 import { InsertAssetDto } from '../assets/dtos/insert-asset.dto';
-import { AssetPrice } from './interfaces/asset-price.interface';
+import { YahooAssetPriceDto } from "./dto/yahoo-asset-price.dto";
 
 @Injectable()
 export class YahooFinanceService {
@@ -18,7 +18,7 @@ export class YahooFinanceService {
     private readonly cacheManager: Cache,
 
   ) { }
-  async getDataForSeeding(assetList: string[]) {
+  async getDataForSeeding(assetList: string[]): Promise<InsertAssetDto[]> {
     let yahooFinanceShortData: ShortAssetYahooFinance[] = []
 
     const data = await this.fetchYahooFinance(assetList)
@@ -35,9 +35,9 @@ export class YahooFinanceService {
     return insertAssetsDtos;
   }
 
-  async getPriceByTicker(ticker: string) {
+  async getPriceByTicker(ticker: string): Promise<YahooAssetPriceDto> {
     const assetPriceCacheKey = this.getPriceCachingKey(ticker)
-    const cachedPrice = await this.cacheManager.get<AssetPrice>(assetPriceCacheKey)
+    const cachedPrice = await this.cacheManager.get<YahooAssetPriceDto>(assetPriceCacheKey)
     if (cachedPrice) {
       return cachedPrice
     }
@@ -48,7 +48,7 @@ export class YahooFinanceService {
       throw new BadGatewayException('Error fetching prices from the provider. Price is missing');
     }
 
-    const yahooFinanceAssetPrice: AssetPrice = {
+    const yahooFinanceAssetPrice: YahooAssetPriceDto = {
       symbol: yahooFinanceData[0].symbol,
       price: yahooFinanceData[0].regularMarketPrice,
     }
@@ -57,12 +57,17 @@ export class YahooFinanceService {
     return yahooFinanceAssetPrice
   }
 
-  async updatePriceByTicker(ticker: string) {
+  async updatePriceByTicker(ticker: string): Promise<YahooAssetPriceDto> {
     const assetPriceCacheKey = this.getPriceCachingKey(ticker)
     await this.cacheManager.del(assetPriceCacheKey)
 
     const yahooFinanceData = await this.fetchYahooFinance([ticker])
-    const yahooFinanceAssetPrice: AssetPrice = {
+
+    if (!yahooFinanceData || !yahooFinanceData[0].regularMarketPrice) {
+      throw new BadGatewayException('Error fetching prices from the provider. Price is missing');
+    }
+
+    const yahooFinanceAssetPrice: YahooAssetPriceDto = {
       symbol: yahooFinanceData[0].symbol,
       price: yahooFinanceData[0].regularMarketPrice,
     }
@@ -72,13 +77,13 @@ export class YahooFinanceService {
     return yahooFinanceAssetPrice;
   }
 
-  async getAllPrices(assetsList: string[]) {
-    let assetsPrices: AssetPrice[] = []
+  async getAllPrices(assetsList: string[]): Promise<YahooAssetPriceDto[]> {
+    let assetsPrices: YahooAssetPriceDto[] = []
     let assetWithoutPrice: string[] = []
 
     for (const asset of assetsList) {
       const assetPriceCacheKey = this.getPriceCachingKey(asset)
-      const assetPrice = await this.cacheManager.get<AssetPrice>(assetPriceCacheKey)
+      const assetPrice = await this.cacheManager.get<YahooAssetPriceDto>(assetPriceCacheKey)
       if (!assetPrice) {
         assetWithoutPrice.push(asset);
         continue
@@ -94,7 +99,7 @@ export class YahooFinanceService {
           console.warn(`Error fetching prices from the provider. Price of ${yahooFinanceAsset.symbol} is missing`)
           continue;
         }
-        const yahooFinanceAssetPrice: AssetPrice = {
+        const yahooFinanceAssetPrice: YahooAssetPriceDto = {
           symbol: yahooFinanceAsset.symbol,
           price: yahooFinanceAsset.regularMarketPrice,
         }
@@ -154,7 +159,7 @@ export class YahooFinanceService {
     return insertAssetsDtos
   }
 
-  getPriceCachingKey(ticker: string) {
+  getPriceCachingKey(ticker: string): string {
     return `${ticker}-price-key`
   }
 }

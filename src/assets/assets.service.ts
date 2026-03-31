@@ -1,13 +1,15 @@
+import { Repository } from 'typeorm';
+
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { Asset } from './entities/asset.entity';
-import { Repository } from 'typeorm';
-import { AssetTypesService } from 'src/asset_types/asset_types.service';
+import { AssetTypesService } from '../asset_types/asset_types.service';
 import { InsertAssetDto } from './dtos/insert-asset.dto';
 import { ShortResponseAssetDto } from './dtos/response-asset.dto';
-import { YahooFinanceService } from 'src/yahoo-finance/yahoo-finance.service';
-import { handlePostgresError } from 'src/common/utils/postgres-error-handler';
+import { YahooFinanceService } from '../yahoo-finance/yahoo-finance.service';
+import { handlePostgresError } from '../common/utils/postgres-error-handler';
+import { YahooAssetPriceDto } from '../yahoo-finance/dto/yahoo-asset-price.dto';
 
 @Injectable()
 export class AssetsService {
@@ -18,7 +20,7 @@ export class AssetsService {
     private readonly yahooFinanceService: YahooFinanceService
   ) { }
 
-  async findAll() {
+  async findAll(): Promise<ShortResponseAssetDto[]> {
     const assets = await this.assetRepository.find({
       relations: {
         assetType: true
@@ -28,7 +30,7 @@ export class AssetsService {
     return assetsShortResponseDto;
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Asset> {
     const asset = await this.assetRepository.findOne({
       where: {
         id
@@ -36,15 +38,12 @@ export class AssetsService {
     })
 
     if (!asset) {
-      throw new NotFoundException(`Asset with id ${id} was not found.`);
+      throw new NotFoundException(`Asset with ID = ${id} does not exist.`);
     }
-
-    //TODO: Implement LongResponseDto with stock and crypto tables
     return asset;
-
   }
 
-  async saveForSeeding(assetsDTOS: InsertAssetDto[], assetType: string) {
+  async saveForSeeding(assetsDTOS: InsertAssetDto[], assetType: string): Promise<void> {
     const stocksAssetType = await this.assetTypeService.getByType(assetType)
 
     if (!stocksAssetType) {
@@ -62,7 +61,7 @@ export class AssetsService {
 
   }
 
-  async updatePrice(ticker: string) {
+  async updatePrice(ticker: string): Promise<YahooAssetPriceDto> {
     try {
       const asset = await this.assetRepository.findOne({
         where: {
@@ -70,14 +69,14 @@ export class AssetsService {
         }
       })
       if (!asset) {
-        throw new NotFoundException(`Asset with ticker: ${ticker} does not exists.`)
+        throw new NotFoundException(`Asset with ticker: ${ticker} does not exist.`)
       }
 
       const updatePriceSuccess = await this.yahooFinanceService.updatePriceByTicker(ticker)
       if (!updatePriceSuccess) {
         throw new InternalServerErrorException(`Error during the update of the price of: ${ticker}`)
       }
-      return true
+      return updatePriceSuccess
     } catch (error) {
       handlePostgresError(error)
     }
