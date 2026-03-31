@@ -139,6 +139,24 @@ export class PortfolioAssetsService {
   }
 
 
+  async remove(portfolioId: string, assetId: string, portfolioAssetId: string, userId: string) {
+
+    const portfolioAsset = await this.portfolioAssetRepository.findOne({
+      where: {
+        id: portfolioAssetId,
+        portfolio: { id: portfolioId, user: { id: userId } },
+        asset: { id: assetId }
+      }
+    })
+
+    if (!portfolioAsset) {
+      throw new NotFoundException(`Portfolio Asset with ID = ${portfolioAssetId} does not exist.`)
+    }
+
+    await this.portfolioAssetRepository.softRemove(portfolioAsset)
+    return true
+  }
+
   private async getPortfolioTotalAssetsAndTotalValue(portfolioAssets: PortfolioAsset[]): Promise<ShortResponsePortfolioAssetDto> {
     const totalAssets = portfolioAssets.length
     let totalValue = 0;
