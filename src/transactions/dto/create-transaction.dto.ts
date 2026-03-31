@@ -1,6 +1,12 @@
 import { IsEnum, IsNumberString, IsOptional, IsUUID, Matches } from "class-validator";
-import { CommissionType, TransactionType } from "../entities/transaction.entity";
+import { TransactionType } from "../entities/transaction.entity";
 import { Transform } from "class-transformer";
+
+export enum CommissionType {
+  FIXED = 'FIXED',
+  PERCENTAGE = 'PERCENTAGE',
+  NONE = 'NONE'
+}
 
 export class CreateTransactionDto {
   @IsNumberString()

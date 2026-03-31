@@ -8,12 +8,6 @@ export enum TransactionType {
   SELL = 'SELL'
 }
 
-export enum CommissionType {
-  FIXED = 'FIXED',
-  PERCENTAGE = 'PERCENTAGE',
-  NONE = 'NONE'
-}
-
 @Entity()
 export class Transaction {
 
@@ -36,13 +30,6 @@ export class Transaction {
   operation: TransactionType
 
   @Column({
-    name: 'commission_type',
-    type: 'enum',
-    enum: CommissionType
-  })
-  commissionType: CommissionType
-
-  @Column({
     type: 'decimal',
     precision: 12,
     scale: 4,
@@ -60,7 +47,7 @@ export class Transaction {
     default: '0',
 
   })
-  commission: string
+  commissionAmount: string
 
   @ManyToOne(() => Portfolio, (portfolio) => portfolio.transactions)
   @JoinColumn({ name: 'portfolio_id' })

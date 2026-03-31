@@ -1,14 +1,15 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, FindOptionsWhere, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 
-import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { CommissionType, Transaction, TransactionType } from './entities/transaction.entity';
+import { CommissionType, CreateTransactionDto } from './dto/create-transaction.dto';
+import { Transaction, TransactionType } from './entities/transaction.entity';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { PortfoliosService } from '../portfolios/portfolios.service';
 import { AssetsService } from '../assets/assets.service';
 import { PortfolioAsset } from '../portfolio-assets/entities/portfolio-asset.entity';
 import { YahooFinanceService } from '../yahoo-finance/yahoo-finance.service';
+import { FilterTransactionsByDto } from './dto/query-params.dto';
 
 @Injectable()
 export class TransactionsService {
@@ -112,6 +113,7 @@ export class TransactionsService {
 
         const transaction = manager.create(Transaction, {
           ...transactionData,
+          commissionAmount: String(commissionAmount),
           portfolio: { id: portfolio.id },
           asset: { id: asset.id }
         })
@@ -122,20 +124,42 @@ export class TransactionsService {
     }
   }
 
-  async findAllTransactionsInPortfolio(portfolioId: string, userId: string) {
+  async findAllTransactionsInPortfolio(portfolioId: string, userId: string, filterDto: FilterTransactionsByDto) {
+    const { fromDate, toDate, transactionType } = filterDto ?? {}
     const portfolio = await this.portfolioService.findOne(portfolioId, userId);
-    const transactions = await this.transactionRepository.find({
-      where: {
-        portfolio: {
-          id: portfolio.id
-        },
-      },
-      relations: {
-        asset: true,
-      }
 
+    const where: FindOptionsWhere<Transaction> = {
+      portfolio: { id: portfolio.id }
+    }
+
+    if (transactionType) {
+      where.operation = transactionType
+    }
+
+    if (fromDate && toDate) {
+      where.createdAt = Between(new Date(fromDate), new Date(toDate))
+    } else if (fromDate) {
+      where.createdAt = MoreThanOrEqual(new Date(fromDate))
+    } else if (toDate) {
+      where.createdAt = LessThanOrEqual(new Date(toDate))
+    }
+
+    const transactions = await this.transactionRepository.find({
+      where,
+      relations: {
+        asset: true
+      },
+      order: {
+        createdAt: 'DESC'
+      }
     })
-    return transactions;
+
+    const totalComissionsAmount = transactions.reduce((totalComissions, transaction) => totalComissions + Number(transaction.commissionAmount), 0)
+
+    return {
+      transactions,
+      totalComissionsAmount
+    };
   }
 
   async findOneTransactionInPortfolio(id: string, portfolioId: string, userId: string) {
@@ -173,6 +197,9 @@ export class TransactionsService {
           asset: {
             id: assetId
           }
+        },
+        order: {
+          createdAt: 'DESC'
         }
       })
 

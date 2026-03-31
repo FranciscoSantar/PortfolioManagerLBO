@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Param, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { User } from '../auth/decorators/user.decorator';
+import { FilterTransactionsByDto } from './dto/query-params.dto';
 
 @Controller('portfolios/:portfolioId/transactions')
 export class TransactionsController {
@@ -20,9 +21,10 @@ export class TransactionsController {
   @Get()
   findAllTransactionsInPortfolio(
     @Param('portfolioId', ParseUUIDPipe) portfolioId: string,
+    @Query() filterDto: FilterTransactionsByDto,
     @User('id') userId: string,
   ) {
-    return this.transactionsService.findAllTransactionsInPortfolio(portfolioId, userId);
+    return this.transactionsService.findAllTransactionsInPortfolio(portfolioId, userId, filterDto);
   }
 
   @Get(':id')
