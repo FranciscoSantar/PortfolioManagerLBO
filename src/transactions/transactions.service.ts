@@ -79,9 +79,10 @@ export class TransactionsService {
           const parsedTransactionQuantity = Number(transactionData.quantity)
           const parsedPortfolioAssetQuantity = Number(portfolioAsset.quantity)
           const parsedPortfolioAssetAvgBuyPrice = Number(portfolioAsset.averageBuyPrice)
+          const parsedPortfolioAssetUnitPrice = Number(transactionData.unitPrice)
 
           if (transactionData.operation === TransactionType.SELL && parsedPortfolioAssetQuantity < parsedTransactionQuantity) {
-            throw new BadRequestException(`Insufficient balance to complete the sell order. You have ${portfolioAsset.quantity} of ${portfolioAsset.asset.ticker}`)
+            throw new BadRequestException(`Insufficient balance to complete the sell order. You have ${parsedPortfolioAssetQuantity} of ${portfolioAsset.asset.ticker}`)
           }
 
           // Update Quantity
@@ -92,7 +93,7 @@ export class TransactionsService {
           } else {
             //Update Quantity and Average Buy Price
             portfolioAssetNewQuantity = parsedPortfolioAssetQuantity + parsedTransactionQuantity
-            const portfolioAssetNewPrice = Number(transactionData.unitPrice)
+            const portfolioAssetNewPrice = parsedPortfolioAssetUnitPrice
             const portfolioAssetNewAvgBuyPrice =
               (parsedPortfolioAssetQuantity * parsedPortfolioAssetAvgBuyPrice + (parsedTransactionQuantity * portfolioAssetNewPrice) + commissionAmount) / portfolioAssetNewQuantity
 
