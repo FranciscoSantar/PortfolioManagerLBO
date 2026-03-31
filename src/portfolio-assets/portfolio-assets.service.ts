@@ -12,6 +12,7 @@ import { AssetDataWithCurrentValue, ResponsePortfolioAssetDto, ShortResponsePort
 import { ShortResponseAssetDto } from '../assets/dtos/response-asset.dto';
 import { roundToDecimals } from '../common/utils/float-parser';
 import { GetPortfolioAssetsQueryParamsDto, OrderPortolioAsstesByEnum } from '../portfolios/dto/query-params-portfolio.dto';
+import { AssetTypeEnum } from 'src/asset_types/entities/asset_type.entity';
 
 @Injectable()
 export class PortfolioAssetsService {
@@ -48,8 +49,8 @@ export class PortfolioAssetsService {
 
   async getInfoOfPortfolioAssets(portfolioId: string, queryDto: GetPortfolioAssetsQueryParamsDto): Promise<ResponsePortfolioAssetDto> {
     let totalInvested = 0
-    let totalAssets = 0
     let totalCurrentValue = 0
+    const assetsTypesObjectCounter = this.getAssetsTypesCounterObject()
 
     const portfolioAssets = await this.getPortfolioAssetsByPortfolioId(portfolioId, queryDto)
 
@@ -57,7 +58,7 @@ export class PortfolioAssetsService {
       return {
         assets: [],
         totalAssets: 0,
-        totalChangePercent: 0,
+        totalRoi: 0,
         totalInvested: 0,
         totalValue: 0
       }
@@ -69,7 +70,7 @@ export class PortfolioAssetsService {
     await this.yahooFinanceService.getAllPrices(portfolioAssetsTickers)
 
 
-    const portfolioAssetDataWithCurrentValue: AssetDataWithCurrentValue[] = await Promise.all(portfolioAssets.map(async (portfolioAsset) => {
+    const portfolioAssetDataWithCurrentValue: AssetDataWithCurrentValue[] = await Promise.all(portfolioAssets.map(async (portfolioAsset: PortfolioAsset) => {
 
       const assetInfo: ShortResponseAssetDto = {
         id: portfolioAsset.asset.id,
@@ -91,26 +92,30 @@ export class PortfolioAssetsService {
 
       totalInvested += portfolioAssetTotalInvested
       totalCurrentValue += portfolioAssetTotalValue
-      totalAssets += 1
+      assetsTypesObjectCounter[portfolioAsset.asset.assetType.type] += 1
 
       return {
         id: portfolioAsset.id,
         info: assetInfo,
         quantity: roundToDecimals(parsedPortfolioAssetQuantity),
-        changePercent: roundToDecimals(portfolioAssetChangePercent),
+        roi: roundToDecimals(portfolioAssetChangePercent),
         unitPrice: roundToDecimals(parsedPortfolioAssetCurrentValue, 4),
+        avgBuyPrice: roundToDecimals(parsedAverageBuyPrice, 4),
         totalValue: roundToDecimals(portfolioAssetTotalValue, 4),
-        avgBuyPrice: roundToDecimals(parsedAverageBuyPrice, 4)
+        totalInvested: roundToDecimals(portfolioAssetTotalInvested, 4),
+        winLose: roundToDecimals(portfolioAssetTotalValue - portfolioAssetTotalInvested, 4)
       }
     }))
 
     const totalChangePercent = ((totalCurrentValue - totalInvested) / totalInvested) * 100
     const response = {
       assets: portfolioAssetDataWithCurrentValue,
-      totalAssets,
+      totalAssets: portfolioAssets.length,
+      totalRoi: roundToDecimals(totalChangePercent),
       totalInvested: roundToDecimals(totalInvested),
-      totalChangePercent: roundToDecimals(totalChangePercent),
-      totalValue: roundToDecimals(totalCurrentValue, 4)
+      totalValue: roundToDecimals(totalCurrentValue, 4),
+      totalWinLose: roundToDecimals(totalCurrentValue - totalInvested, 4),
+      assetsDistribution: assetsTypesObjectCounter
     };
 
     const orderedResponse = this.orderPortfolioAssets(response, queryDto)
@@ -199,9 +204,17 @@ export class PortfolioAssetsService {
     const { orderBy = OrderPortolioAsstesByEnum.VALUE } = queryDto ?? {}
     const sortMap: Record<OrderPortolioAsstesByEnum, (a: AssetDataWithCurrentValue, b: AssetDataWithCurrentValue) => number> = {
       [OrderPortolioAsstesByEnum.VALUE]: (a, b) => b.unitPrice - a.unitPrice,
-      [OrderPortolioAsstesByEnum.PERCENTAGE]: (a, b) => b.changePercent - a.changePercent,
+      [OrderPortolioAsstesByEnum.PERCENTAGE]: (a, b) => b.roi - a.roi,
     }
     response.assets.sort(sortMap[orderBy])
     return response
+  }
+
+  private getAssetsTypesCounterObject(): Record<string, number> {
+    const assetsTypesObjectCounter: Record<string, number> = {}
+    for (const assetType of Object.values(AssetTypeEnum)) {
+      assetsTypesObjectCounter[assetType] = 0
+    }
+    return assetsTypesObjectCounter
   }
 }
