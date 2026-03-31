@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,20 @@ async function bootstrap() {
       transform: true
     }),
   );
+
+  const config = new DocumentBuilder()
+    .setTitle('LBO Portfolio Manager')
+    .setDescription('The API for LBO Portfolio Manager allows users to manage their investment portfolios, track assets, and generate reports.')
+    .setVersion('1.0')
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, documentFactory, {
+    swaggerOptions: {
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+    },
+  });
+
 
   await app.listen(process.env.APP_PORT ?? 3000);
 }
