@@ -25,7 +25,7 @@ export class PortfolioAssetsService {
     private readonly yahooFinanceService: YahooFinanceService
   ) { }
 
-  async findOne(portfolioId: string, assetId: string) {
+  async findOne(portfolioId: string, assetId: string): Promise<PortfolioAsset> {
     try {
       const portfolioAsset = await this.portfolioAssetRepository.findOne({
         where: {
@@ -122,7 +122,7 @@ export class PortfolioAssetsService {
     return orderedResponse
   }
 
-  async getSummaryOfPortfolio(portfolioId: string) {
+  async getSummaryOfPortfolio(portfolioId: string): Promise<ShortResponsePortfolioAssetDto> {
 
     try {
       const portfolioAssets = await this.getPortfolioAssetsByPortfolioId(portfolioId)
@@ -144,7 +144,7 @@ export class PortfolioAssetsService {
   }
 
 
-  async remove(portfolioId: string, assetId: string, portfolioAssetId: string, userId: string) {
+  async remove(portfolioId: string, assetId: string, portfolioAssetId: string, userId: string): Promise<boolean> {
 
     const portfolioAsset = await this.portfolioAssetRepository.findOne({
       where: {
@@ -178,7 +178,7 @@ export class PortfolioAssetsService {
     }
   }
 
-  private async getPortfolioAssetsByPortfolioId(portfolioId: string, queryDto?: GetPortfolioAssetsQueryParamsDto) {
+  private async getPortfolioAssetsByPortfolioId(portfolioId: string, queryDto?: GetPortfolioAssetsQueryParamsDto): Promise<PortfolioAsset[]> {
     const { filterBy } = queryDto ?? {}
 
     const where: FindOptionsWhere<PortfolioAsset> = {
@@ -200,7 +200,7 @@ export class PortfolioAssetsService {
     return portfolioAssets
   }
 
-  private orderPortfolioAssets(response: ResponsePortfolioAssetDto, queryDto?: GetPortfolioAssetsQueryParamsDto) {
+  private orderPortfolioAssets(response: ResponsePortfolioAssetDto, queryDto?: GetPortfolioAssetsQueryParamsDto): ResponsePortfolioAssetDto {
     const { orderBy = OrderPortolioAsstesByEnum.VALUE } = queryDto ?? {}
     const sortMap: Record<OrderPortolioAsstesByEnum, (a: AssetDataWithCurrentValue, b: AssetDataWithCurrentValue) => number> = {
       [OrderPortolioAsstesByEnum.VALUE]: (a, b) => b.unitPrice - a.unitPrice,
@@ -210,6 +210,10 @@ export class PortfolioAssetsService {
     return response
   }
 
+  /* 
+    This method is used to create an object with the keys of the different asset types and the values initialized in 0, 
+    this is used to count the number of assets of each type in a portfolio for charting purposes.
+  */
   private getAssetsTypesCounterObject(): Record<string, number> {
     const assetsTypesObjectCounter: Record<string, number> = {}
     for (const assetType of Object.values(AssetTypeEnum)) {

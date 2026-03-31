@@ -1,4 +1,5 @@
 import { Controller, Param, ParseUUIDPipe, Delete } from '@nestjs/common';
+import { ApiNoContentResponse, ApiNotFoundResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 import { User } from '../auth/decorators/user.decorator';
 import { PortfolioAssetsService } from './portfolio-assets.service';
@@ -7,6 +8,10 @@ import { PortfolioAssetsService } from './portfolio-assets.service';
 export class PortfolioAssetController {
   constructor(private readonly portfolioAssetService: PortfolioAssetsService) { }
 
+  @ApiOperation({ summary: 'Remove an asset from a portfolio' })
+  @ApiNoContentResponse({ description: 'Asset removed from portfolio successfully' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Portfolio or Asset not found' })
   @Delete(':portfolioAssetId')
   remove(
     @Param('portfolioAssetId', ParseUUIDPipe) portfolioAssetId: string,
