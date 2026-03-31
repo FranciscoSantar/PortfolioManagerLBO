@@ -48,78 +48,87 @@ export class PortfolioAssetsService {
   }
 
   async getInfoOfPortfolioAssets(portfolioId: string, queryDto?: GetPortfolioAssetsQueryParamsDto): Promise<ResponsePortfolioAssetDto> {
-    let totalInvested = 0
-    let totalCurrentValue = 0
-    const assetsTypesObjectCounter = this.getAssetsTypesCounterObject()
+    try {
+      let totalInvested = 0
+      let totalCurrentValue = 0
+      const assetsTypesObjectCounter = this.getAssetsTypesCounterObject()
 
-    const portfolioAssets = await this.getPortfolioAssetsByPortfolioId(portfolioId, queryDto)
+      const portfolioAssets = await this.getPortfolioAssetsByPortfolioId(portfolioId, queryDto)
 
-    if (portfolioAssets.length === 0) {
-      return {
-        assets: [],
-        totalAssets: 0,
-        totalRoi: 0,
-        totalInvested: 0,
-        totalValue: 0
+      if (portfolioAssets.length === 0) {
+        return {
+          assets: [],
+          totalAssets: 0,
+          totalRoi: 0,
+          totalInvested: 0,
+          totalValue: 0
+        }
       }
+
+      const portfolioAssetsTickers = portfolioAssets.map((portfolioAsset) => portfolioAsset.asset.ticker)
+
+      //Update prices in cache
+      await this.yahooFinanceService.getAllPrices(portfolioAssetsTickers)
+
+
+      const portfolioAssetDataWithCurrentValueDto: AssetDataWithCurrentValueDto[] = await Promise.all(portfolioAssets.map(async (portfolioAsset: PortfolioAsset) => {
+
+        const assetInfo: ShortResponseAssetDto = {
+          id: portfolioAsset.asset.id,
+          name: portfolioAsset.asset.name,
+          ticker: portfolioAsset.asset.ticker,
+          type: portfolioAsset.asset.assetType.type
+        }
+
+        const assetPriceCacheKey = this.yahooFinanceService.getPriceCachingKey(portfolioAsset.asset.ticker)
+        let portfolioAssetYahooData = await this.cacheManager.get<YahooAssetPriceDto>(assetPriceCacheKey)
+
+        if (!portfolioAssetYahooData) {
+          portfolioAssetYahooData = await this.yahooFinanceService.getPriceByTicker(portfolioAsset.asset.ticker)
+        }
+
+        const parsedPortfolioAssetCurrentValue = Number(portfolioAssetYahooData?.price)
+        const parsedPortfolioAssetQuantity = Number(portfolioAsset.quantity)
+        const parsedAverageBuyPrice = Number(portfolioAsset.averageBuyPrice)
+
+        const portfolioAssetTotalInvested = parsedAverageBuyPrice * parsedPortfolioAssetQuantity
+        const portfolioAssetTotalValue = parsedPortfolioAssetCurrentValue * parsedPortfolioAssetQuantity
+        const portfolioAssetChangePercent = ((parsedPortfolioAssetCurrentValue - parsedAverageBuyPrice) / parsedAverageBuyPrice) * 100
+
+        totalInvested += portfolioAssetTotalInvested
+        totalCurrentValue += portfolioAssetTotalValue
+        assetsTypesObjectCounter[portfolioAsset.asset.assetType.type] += 1
+
+        return {
+          portfolioAssetId: portfolioAsset.id,
+          info: assetInfo,
+          quantity: roundToDecimals(parsedPortfolioAssetQuantity),
+          roi: roundToDecimals(portfolioAssetChangePercent),
+          unitPrice: roundToDecimals(parsedPortfolioAssetCurrentValue, 4),
+          avgBuyPrice: roundToDecimals(parsedAverageBuyPrice, 4),
+          totalValue: roundToDecimals(portfolioAssetTotalValue, 4),
+          totalInvested: roundToDecimals(portfolioAssetTotalInvested, 4),
+          winLose: roundToDecimals(portfolioAssetTotalValue - portfolioAssetTotalInvested, 4)
+        }
+      }))
+
+      const totalChangePercent = ((totalCurrentValue - totalInvested) / totalInvested) * 100
+      const response = {
+        assets: portfolioAssetDataWithCurrentValueDto,
+        totalAssets: portfolioAssets.length,
+        totalRoi: roundToDecimals(totalChangePercent),
+        totalInvested: roundToDecimals(totalInvested),
+        totalValue: roundToDecimals(totalCurrentValue, 4),
+        totalWinLose: roundToDecimals(totalCurrentValue - totalInvested, 4),
+        assetsDistribution: assetsTypesObjectCounter
+      };
+
+      const orderedResponse = this.orderPortfolioAssets(response, queryDto)
+      return orderedResponse
     }
-
-    const portfolioAssetsTickers = portfolioAssets.map((portfolioAsset) => portfolioAsset.asset.ticker)
-
-    //Update prices in cache
-    await this.yahooFinanceService.getAllPrices(portfolioAssetsTickers)
-
-
-    const portfolioAssetDataWithCurrentValueDto: AssetDataWithCurrentValueDto[] = await Promise.all(portfolioAssets.map(async (portfolioAsset: PortfolioAsset) => {
-
-      const assetInfo: ShortResponseAssetDto = {
-        id: portfolioAsset.asset.id,
-        name: portfolioAsset.asset.name,
-        ticker: portfolioAsset.asset.ticker,
-        type: portfolioAsset.asset.assetType.type
-      }
-
-      const assetPriceCacheKey = this.yahooFinanceService.getPriceCachingKey(portfolioAsset.asset.ticker)
-      const portfolioAssetCurrentValue = await this.cacheManager.get<YahooAssetPriceDto>(assetPriceCacheKey)
-
-      const parsedPortfolioAssetCurrentValue = Number(portfolioAssetCurrentValue?.price)
-      const parsedPortfolioAssetQuantity = Number(portfolioAsset.quantity)
-      const parsedAverageBuyPrice = Number(portfolioAsset.averageBuyPrice)
-
-      const portfolioAssetTotalInvested = parsedAverageBuyPrice * parsedPortfolioAssetQuantity
-      const portfolioAssetTotalValue = parsedPortfolioAssetCurrentValue * parsedPortfolioAssetQuantity
-      const portfolioAssetChangePercent = ((parsedPortfolioAssetCurrentValue - parsedAverageBuyPrice) / parsedAverageBuyPrice) * 100
-
-      totalInvested += portfolioAssetTotalInvested
-      totalCurrentValue += portfolioAssetTotalValue
-      assetsTypesObjectCounter[portfolioAsset.asset.assetType.type] += 1
-
-      return {
-        portfolioAssetId: portfolioAsset.id,
-        info: assetInfo,
-        quantity: roundToDecimals(parsedPortfolioAssetQuantity),
-        roi: roundToDecimals(portfolioAssetChangePercent),
-        unitPrice: roundToDecimals(parsedPortfolioAssetCurrentValue, 4),
-        avgBuyPrice: roundToDecimals(parsedAverageBuyPrice, 4),
-        totalValue: roundToDecimals(portfolioAssetTotalValue, 4),
-        totalInvested: roundToDecimals(portfolioAssetTotalInvested, 4),
-        winLose: roundToDecimals(portfolioAssetTotalValue - portfolioAssetTotalInvested, 4)
-      }
-    }))
-
-    const totalChangePercent = ((totalCurrentValue - totalInvested) / totalInvested) * 100
-    const response = {
-      assets: portfolioAssetDataWithCurrentValueDto,
-      totalAssets: portfolioAssets.length,
-      totalRoi: roundToDecimals(totalChangePercent),
-      totalInvested: roundToDecimals(totalInvested),
-      totalValue: roundToDecimals(totalCurrentValue, 4),
-      totalWinLose: roundToDecimals(totalCurrentValue - totalInvested, 4),
-      assetsDistribution: assetsTypesObjectCounter
-    };
-
-    const orderedResponse = this.orderPortfolioAssets(response, queryDto)
-    return orderedResponse
+    catch (error) {
+      handlePostgresError(error)
+    }
   }
 
   async getSummaryOfPortfolio(portfolioId: string): Promise<ShortResponsePortfolioAssetDto> {
@@ -145,21 +154,24 @@ export class PortfolioAssetsService {
 
 
   async remove(portfolioId: string, assetId: string, portfolioAssetId: string, userId: string): Promise<boolean> {
+    try {
+      const portfolioAsset = await this.portfolioAssetRepository.findOne({
+        where: {
+          id: portfolioAssetId,
+          portfolio: { id: portfolioId, user: { id: userId } },
+          asset: { id: assetId }
+        }
+      })
 
-    const portfolioAsset = await this.portfolioAssetRepository.findOne({
-      where: {
-        id: portfolioAssetId,
-        portfolio: { id: portfolioId, user: { id: userId } },
-        asset: { id: assetId }
+      if (!portfolioAsset) {
+        throw new NotFoundException(`Portfolio Asset with ID = ${portfolioAssetId} does not exist.`)
       }
-    })
 
-    if (!portfolioAsset) {
-      throw new NotFoundException(`Portfolio Asset with ID = ${portfolioAssetId} does not exist.`)
+      await this.portfolioAssetRepository.softRemove(portfolioAsset)
+      return true
+    } catch (error) {
+      handlePostgresError(error)
     }
-
-    await this.portfolioAssetRepository.softRemove(portfolioAsset)
-    return true
   }
 
   private async getPortfolioTotalAssetsAndTotalValue(portfolioAssets: PortfolioAsset[]): Promise<ShortResponsePortfolioAssetDto> {

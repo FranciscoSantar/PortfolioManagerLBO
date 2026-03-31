@@ -21,26 +21,34 @@ export class AssetsService {
   ) { }
 
   async findAll(): Promise<ShortResponseAssetDto[]> {
-    const assets = await this.assetRepository.find({
-      relations: {
-        assetType: true
-      }
-    })
-    const assetsShortResponseDto = assets.map((asset) => this.toResponseDto(asset))
-    return assetsShortResponseDto;
+    try {
+      const assets = await this.assetRepository.find({
+        relations: {
+          assetType: true
+        }
+      })
+      const assetsShortResponseDto = assets.map((asset) => this.toResponseDto(asset))
+      return assetsShortResponseDto;
+    } catch (error) {
+      handlePostgresError(error)
+    }
   }
 
   async findOne(id: string): Promise<Asset> {
-    const asset = await this.assetRepository.findOne({
-      where: {
-        id
-      }
-    })
+    try {
+      const asset = await this.assetRepository.findOne({
+        where: {
+          id
+        }
+      })
 
-    if (!asset) {
-      throw new NotFoundException(`Asset with ID = ${id} does not exist.`);
+      if (!asset) {
+        throw new NotFoundException(`Asset with ID = ${id} does not exist.`);
+      }
+      return asset;
+    } catch (error) {
+      handlePostgresError(error)
     }
-    return asset;
   }
 
   async saveForSeeding(assetsDTOS: InsertAssetDto[], assetType: string): Promise<void> {

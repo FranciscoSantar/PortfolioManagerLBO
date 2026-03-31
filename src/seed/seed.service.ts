@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AssetTypesService } from 'src/asset_types/asset_types.service';
-import { AssetsService } from 'src/assets/assets.service';
-import { YahooFinanceService } from 'src/yahoo-finance/yahoo-finance.service';
+
+import { AssetTypesService } from '../asset_types/asset_types.service';
+import { AssetsService } from '../assets/assets.service';
+import { YahooFinanceService } from '../yahoo-finance/yahoo-finance.service';
 import { STOCKS_TICKERS, CRYPTO_SYMBOLS, ASSET_TYPES } from './data/assets-types-and-assets';
+import { handlePostgresError } from '../common/utils/postgres-error-handler';
 
 @Injectable()
 export class SeedService {
@@ -13,14 +15,18 @@ export class SeedService {
     private readonly yahooFinanceService: YahooFinanceService
   ) { }
   async populateDB() {
-    await this.assetTypesService.saveForSeeding(ASSET_TYPES)
+    try {
+      await this.assetTypesService.saveForSeeding(ASSET_TYPES)
 
-    // Start seeding stocks
-    const stocksAssetsDtos = await this.yahooFinanceService.getDataForSeeding(STOCKS_TICKERS)
-    await this.assetService.saveForSeeding(stocksAssetsDtos, 'STOCK')
+      // Start seeding stocks
+      const stocksAssetsDtos = await this.yahooFinanceService.getDataForSeeding(STOCKS_TICKERS)
+      await this.assetService.saveForSeeding(stocksAssetsDtos, 'STOCK')
 
-    // Then, Cryptos
-    const cryptosAssetsDtos = await this.yahooFinanceService.getDataForSeeding(CRYPTO_SYMBOLS)
-    await this.assetService.saveForSeeding(cryptosAssetsDtos, 'CRYPTO')
+      // Then, Cryptos
+      const cryptosAssetsDtos = await this.yahooFinanceService.getDataForSeeding(CRYPTO_SYMBOLS)
+      await this.assetService.saveForSeeding(cryptosAssetsDtos, 'CRYPTO')
+    } catch (error) {
+      handlePostgresError(error)
+    }
   }
 }

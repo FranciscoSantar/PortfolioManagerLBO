@@ -51,20 +51,24 @@ export class AuthService {
       throw new UnauthorizedException(`Invalid Credentials`)
     }
 
-    const passwordMatch = bcrypt.compareSync(password, user.password)
+    try {
+      const passwordMatch = bcrypt.compareSync(password, user.password)
 
-    if (!passwordMatch) {
-      throw new UnauthorizedException(`Invalid Credentials`)
-    }
+      if (!passwordMatch) {
+        throw new UnauthorizedException(`Invalid Credentials`)
+      }
 
-    const jwtPayload: JwtPayload = {
-      id: user.id,
-      email
-    }
+      const jwtPayload: JwtPayload = {
+        id: user.id,
+        email
+      }
 
-    const jwtToken = this.getJwtToken(jwtPayload)
-    return {
-      token: jwtToken
+      const jwtToken = this.getJwtToken(jwtPayload)
+      return {
+        token: jwtToken
+      }
+    } catch (error) {
+      handlePostgresError(error)
     }
   }
 

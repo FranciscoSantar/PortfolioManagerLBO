@@ -1,9 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { AssetType } from './entities/asset_type.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import { AssetType } from './entities/asset_type.entity';
 import { InsertAssetTypeDto } from './dto/insert-asset_type.dto';
-import { ASSET_TYPES } from 'src/seed/data/assets-types-and-assets';
+import { ASSET_TYPES } from '../seed/data/assets-types-and-assets';
+import { handlePostgresError } from '../common/utils/postgres-error-handler';
 
 @Injectable()
 export class AssetTypesService {
@@ -15,7 +18,6 @@ export class AssetTypesService {
   async saveForSeeding(assetTypes: string[]) {
     const isPopulated = await this.checkIfExists()
     if (isPopulated) {
-      console.log('Asset Type table is already populated.')
       throw new Error('Asset Type table is already populated.')
     }
 
@@ -37,11 +39,19 @@ export class AssetTypesService {
   }
 
   async getByType(type: string) {
-    const assetType = this.assetTypeRepository.findOne({
-      where: {
-        type
+    try {
+      const assetType = this.assetTypeRepository.findOne({
+        where: {
+          type
+        }
+      })
+
+      if (!assetType) {
+        throw new NotFoundException(`Asset type ${type} was not found.`)
       }
-    })
-    return assetType
+      return assetType
+    } catch (error) {
+      handlePostgresError(error)
+    }
   }
 }

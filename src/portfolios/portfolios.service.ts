@@ -19,7 +19,7 @@ import {
   PagintionPortfolioDto,
 } from './dto/query-params-portfolio.dto';
 import { PortfolioAsset } from '../portfolio-assets/entities/portfolio-asset.entity';
-import { ResponsePortfolioAssetDto } from 'src/portfolio-assets/dto/response-portfolio-asset.dto';
+import { ResponsePortfolioAssetDto } from '../portfolio-assets/dto/response-portfolio-asset.dto';
 
 @Injectable()
 export class PortfoliosService {
@@ -31,7 +31,7 @@ export class PortfoliosService {
     private readonly portfolioRepository: Repository<Portfolio>,
 
     private readonly portfolioAssetService: PortfolioAssetsService,
-  ) {}
+  ) { }
 
   async create(
     createPortfolioDto: CreatePortfolioDto,
@@ -61,36 +61,41 @@ export class PortfoliosService {
     userId: string,
     paginationParams: PagintionPortfolioDto,
   ): Promise<ShortResponsePortfolioDto> {
-    const { pageSize = 10, pageNumber = 0 } = paginationParams;
-    const [portfolios, totalPortfolios] =
-      await this.portfolioRepository.findAndCount({
-        where: {
-          user: {
-            id: userId,
+
+    try {
+      const { pageSize = 10, pageNumber = 0 } = paginationParams;
+      const [portfolios, totalPortfolios] =
+        await this.portfolioRepository.findAndCount({
+          where: {
+            user: {
+              id: userId,
+            },
           },
-        },
-        take: pageSize,
-        skip: pageSize * pageNumber,
-      });
+          take: pageSize,
+          skip: pageSize * pageNumber,
+        });
 
-    const totalPages = Math.ceil(totalPortfolios / pageSize);
+      const totalPages = Math.ceil(totalPortfolios / pageSize);
 
-    const portfoliosData: ShortPortfolioDto[] = await Promise.all(
-      portfolios.map(async (portfolio) => {
-        const portfolioSummary =
-          await this.portfolioAssetService.getSummaryOfPortfolio(portfolio.id);
-        return {
-          id: portfolio.id,
-          name: portfolio.name,
-          summary: portfolioSummary,
-        };
-      }),
-    );
+      const portfoliosData: ShortPortfolioDto[] = await Promise.all(
+        portfolios.map(async (portfolio) => {
+          const portfolioSummary =
+            await this.portfolioAssetService.getSummaryOfPortfolio(portfolio.id);
+          return {
+            id: portfolio.id,
+            name: portfolio.name,
+            summary: portfolioSummary,
+          };
+        }),
+      );
 
-    return {
-      data: portfoliosData,
-      totalPages,
-    };
+      return {
+        data: portfoliosData,
+        totalPages,
+      };
+    } catch (error) {
+      handlePostgresError(error);
+    }
   }
 
   async getPortfolioData(
@@ -129,20 +134,24 @@ export class PortfoliosService {
   }
 
   async remove(id: string, userId: string): Promise<boolean> {
-    const portfolio = await this.findOne(id, userId);
+    try {
+      const portfolio = await this.findOne(id, userId);
 
-    await this.dataSource.transaction(async (manager) => {
-      await manager.softDelete(Transaction, {
-        portfolio,
+      await this.dataSource.transaction(async (manager) => {
+        await manager.softDelete(Transaction, {
+          portfolio,
+        });
+
+        await manager.softDelete(PortfolioAsset, {
+          portfolio,
+        });
+
+        await manager.softDelete(Portfolio, { id });
       });
-
-      await manager.softDelete(PortfolioAsset, {
-        portfolio,
-      });
-
-      await manager.softDelete(Portfolio, { id });
-    });
-    return true;
+      return true;
+    } catch (error) {
+      handlePostgresError(error);
+    }
   }
 
   async findOne(id: string, userId: string): Promise<Portfolio> {

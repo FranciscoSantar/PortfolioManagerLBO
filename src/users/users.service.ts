@@ -80,33 +80,37 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<boolean> {
-    const user = await this.findById(id)
+    try {
+      const user = await this.findById(id)
 
-    await this.dataSource.transaction(async (manager) => {
-      await manager.softDelete(Transaction, {
-        portfolio: {
-          user: {
-            id
+      await this.dataSource.transaction(async (manager) => {
+        await manager.softDelete(Transaction, {
+          portfolio: {
+            user: {
+              id
+            }
           }
-        }
-      })
+        })
 
-      await manager.softDelete(PortfolioAsset, {
-        portfolio: {
-          user: {
-            id
+        await manager.softDelete(PortfolioAsset, {
+          portfolio: {
+            user: {
+              id
+            }
           }
-        }
-      })
+        })
 
-      await manager.softDelete(Portfolio, {
-        user
-      });
+        await manager.softDelete(Portfolio, {
+          user
+        });
 
-      await manager.softDelete(User, {
-        id
+        await manager.softDelete(User, {
+          id
+        });
       });
-    });
-    return true
+      return true
+    } catch (error) {
+      handlePostgresError(error)
+    }
   }
 }

@@ -140,49 +140,53 @@ export class TransactionsService {
   }
 
   async findAllTransactionsInPortfolio(portfolioId: string, userId: string, filterDto?: FilterTransactionsByDto): Promise<ResponseTransactionsWithTotalCommissionDto> {
-    const { fromDate, toDate, transactionType } = filterDto ?? {}
-    const portfolio = await this.portfolioService.findOne(portfolioId, userId);
+    try {
+      const { fromDate, toDate, transactionType } = filterDto ?? {}
+      const portfolio = await this.portfolioService.findOne(portfolioId, userId);
 
-    const where: FindOptionsWhere<Transaction> = {
-      portfolio: { id: portfolio.id }
-    }
-
-    if (transactionType) {
-      where.operation = transactionType
-    }
-
-    if (fromDate && toDate) {
-      where.createdAt = Between(new Date(fromDate), new Date(toDate))
-    } else if (fromDate) {
-      where.createdAt = MoreThanOrEqual(new Date(fromDate))
-    } else if (toDate) {
-      where.createdAt = LessThanOrEqual(new Date(toDate))
-    }
-
-    const transactions = await this.transactionRepository.find({
-      where,
-      relations: {
-        asset: true
-      },
-      order: {
-        createdAt: 'DESC'
+      const where: FindOptionsWhere<Transaction> = {
+        portfolio: { id: portfolio.id }
       }
-    })
 
-    const transactionsResponsesDto = transactions.map(transaction => ({
-      id: transaction.id,
-      quantity: Number(transaction.quantity),
-      operation: transaction.operation,
-      unitPrice: Number(transaction.unitPrice),
-      commission: Number(transaction.commissionAmount),
-    }))
+      if (transactionType) {
+        where.operation = transactionType
+      }
 
-    const totalComissionsAmount = transactions.reduce((totalComissions, transaction) => totalComissions + Number(transaction.commissionAmount), 0)
+      if (fromDate && toDate) {
+        where.createdAt = Between(new Date(fromDate), new Date(toDate))
+      } else if (fromDate) {
+        where.createdAt = MoreThanOrEqual(new Date(fromDate))
+      } else if (toDate) {
+        where.createdAt = LessThanOrEqual(new Date(toDate))
+      }
 
-    return {
-      transactions: transactionsResponsesDto,
-      totalCommission: totalComissionsAmount
-    };
+      const transactions = await this.transactionRepository.find({
+        where,
+        relations: {
+          asset: true
+        },
+        order: {
+          createdAt: 'DESC'
+        }
+      })
+
+      const transactionsResponsesDto = transactions.map(transaction => ({
+        id: transaction.id,
+        quantity: Number(transaction.quantity),
+        operation: transaction.operation,
+        unitPrice: Number(transaction.unitPrice),
+        commission: Number(transaction.commissionAmount),
+      }))
+
+      const totalComissionsAmount = transactions.reduce((totalComissions, transaction) => totalComissions + Number(transaction.commissionAmount), 0)
+
+      return {
+        transactions: transactionsResponsesDto,
+        totalCommission: totalComissionsAmount
+      };
+    } catch (error) {
+      handlePostgresError(error)
+    }
   }
 
   async findOneTransactionInPortfolio(id: string, portfolioId: string, userId: string): Promise<ShortResponseTransactionDto> {
