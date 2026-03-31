@@ -16,6 +16,7 @@ import { YahooFinanceModule } from './yahoo-finance/yahoo-finance.module';
 import { SeedModule } from './seed/seed.module';
 import { AuthModule } from './auth/auth.module';
 import { PortfolioAssetsModule } from './portfolio-assets/portfolio-assets.module';
+import { ReportsModule } from './reports/reports.module';
 import configuration from '../config/configuration';
 
 @Module({
@@ -61,6 +62,7 @@ import configuration from '../config/configuration';
     SeedModule,
     AuthModule,
     PortfolioAssetsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

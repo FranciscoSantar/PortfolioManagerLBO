@@ -11,5 +11,6 @@ import { YahooFinanceModule } from '../yahoo-finance/yahoo-finance.module';
   imports: [TypeOrmModule.forFeature([Transaction]), PortfoliosModule, AssetsModule, YahooFinanceModule],
   controllers: [TransactionsController],
   providers: [TransactionsService],
+  exports: [TransactionsService]
 })
 export class TransactionsModule { }
