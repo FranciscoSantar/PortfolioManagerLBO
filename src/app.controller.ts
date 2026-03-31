@@ -1,14 +1,22 @@
 import { Controller, Get } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiProperty } from '@nestjs/swagger';
+
 import { AppService } from './app.service';
 import { Public } from './auth/decorators/public.decorator';
 
+class healthResponse {
+  @ApiProperty({ description: 'Indicates if the API is healthy', example: true })
+  ok: boolean;
+}
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) { }
+  constructor() { }
 
+  @ApiOperation({ summary: 'Health check endpoint to verify that the API is running' })
+  @ApiOkResponse({ description: 'API is healthy', type: healthResponse })
   @Public()
   @Get('health')
-  health() {
+  health(): healthResponse {
     return {
       ok: true
     };
