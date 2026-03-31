@@ -2,10 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { Portfolio } from '..//portfolios/entities/portfolio.entity';
+import { Portfolio } from '../portfolios/entities/portfolio.entity';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
 
 @Injectable()
