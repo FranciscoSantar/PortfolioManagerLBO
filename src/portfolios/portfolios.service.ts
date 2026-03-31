@@ -1,6 +1,7 @@
+import { DataSource, Repository } from 'typeorm';
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
 
 import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
 import { Portfolio } from './entities/portfolio.entity';
@@ -8,129 +9,162 @@ import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { Transaction } from '../transactions/entities/transaction.entity';
 import { PortfolioAssetsService } from '../portfolio-assets/portfolio-assets.service';
-import { ShortResponseDto, ShortResponsePortfolioDto } from './dto/response-portfolio.dto';
-import { GetPortfolioAssetsQueryParamsDto, PagintionPortfolioDto } from './dto/query-params-portfolio.dto';
+import {
+  ShortResponsePortfolioDto,
+  ShortPortfolioDto,
+  ResponseCreatePortfolioDto,
+} from './dto/response-portfolio.dto';
+import {
+  GetPortfolioAssetsQueryParamsDto,
+  PagintionPortfolioDto,
+} from './dto/query-params-portfolio.dto';
 import { PortfolioAsset } from '../portfolio-assets/entities/portfolio-asset.entity';
+import { ResponsePortfolioAssetDto } from 'src/portfolio-assets/dto/response-portfolio-asset.dto';
 
 @Injectable()
 export class PortfoliosService {
   constructor(
-
     @InjectDataSource()
     private readonly dataSource: DataSource,
 
     @InjectRepository(Portfolio)
     private readonly portfolioRepository: Repository<Portfolio>,
 
-    private readonly portfolioAssetService: PortfolioAssetsService
-  ) { }
+    private readonly portfolioAssetService: PortfolioAssetsService,
+  ) {}
 
-  async create(createPortfolioDto: CreatePortfolioDto, userId: string) {
+  async create(
+    createPortfolioDto: CreatePortfolioDto,
+    userId: string,
+  ): Promise<ResponseCreatePortfolioDto> {
     try {
       const portfolio = this.portfolioRepository.create({
         ...createPortfolioDto,
         user: {
-          id: userId
-        }
+          id: userId,
+        },
       });
 
       await this.portfolioRepository.save(portfolio);
-      return portfolio;
+      return {
+        id: portfolio.id,
+        name: portfolio.name,
+        baseCoin: portfolio.baseCoin,
+        description: portfolio.description,
+      };
     } catch (error) {
-      handlePostgresError(error)
+      handlePostgresError(error);
     }
-
   }
-  async findAll(userId: string, paginationParams: PagintionPortfolioDto): Promise<ShortResponseDto> {
-    const { pageSize = 10, pageNumber = 0 } = paginationParams
-    const [portfolios, totalPortfolios] = await this.portfolioRepository.findAndCount({
-      where: {
-        user: {
-          id: userId
-        }
-      },
-      take: pageSize,
-      skip: pageSize * pageNumber
-    })
 
-    const totalPages = Math.ceil(totalPortfolios / pageSize)
+  async findAll(
+    userId: string,
+    paginationParams: PagintionPortfolioDto,
+  ): Promise<ShortResponsePortfolioDto> {
+    const { pageSize = 10, pageNumber = 0 } = paginationParams;
+    const [portfolios, totalPortfolios] =
+      await this.portfolioRepository.findAndCount({
+        where: {
+          user: {
+            id: userId,
+          },
+        },
+        take: pageSize,
+        skip: pageSize * pageNumber,
+      });
 
-    const portfoliosData: ShortResponsePortfolioDto[] = await Promise.all(
+    const totalPages = Math.ceil(totalPortfolios / pageSize);
+
+    const portfoliosData: ShortPortfolioDto[] = await Promise.all(
       portfolios.map(async (portfolio) => {
-        const portfolioSummary = await this.portfolioAssetService.getSummaryOfPortfolio(portfolio.id)
+        const portfolioSummary =
+          await this.portfolioAssetService.getSummaryOfPortfolio(portfolio.id);
         return {
           id: portfolio.id,
           name: portfolio.name,
           summary: portfolioSummary,
-        }
-      })
-    )
+        };
+      }),
+    );
 
     return {
       data: portfoliosData,
-      totalPages
+      totalPages,
     };
   }
 
-  async getPortfolioData(id: string, userId: string, queryDto?: GetPortfolioAssetsQueryParamsDto) {
-    const portfolio = await this.findOne(id, userId)
+  async getPortfolioData(
+    id: string,
+    userId: string,
+    queryDto?: GetPortfolioAssetsQueryParamsDto,
+  ): Promise<ResponsePortfolioAssetDto> {
+    const portfolio = await this.findOne(id, userId);
     try {
-      const portfolioAssetsData = await this.portfolioAssetService.getInfoOfPortfolioAssets(id, queryDto)
-      return portfolioAssetsData
+      const portfolioAssetsData =
+        await this.portfolioAssetService.getInfoOfPortfolioAssets(id, queryDto);
+      return portfolioAssetsData;
     } catch (error) {
-      handlePostgresError(error)
+      handlePostgresError(error);
     }
   }
 
-  async update(id: string, updatePortfolioDto: UpdatePortfolioDto, userId: string) {
-    const portfolio = await this.findOne(id, userId)
+  async update(
+    id: string,
+    updatePortfolioDto: UpdatePortfolioDto,
+    userId: string,
+  ): Promise<ResponseCreatePortfolioDto> {
+    const portfolio = await this.findOne(id, userId);
     try {
-      this.portfolioRepository.merge(portfolio, updatePortfolioDto)
-      const updatedPortfolio = await this.portfolioRepository.save(portfolio)
-      return updatedPortfolio;
-
+      this.portfolioRepository.merge(portfolio, updatePortfolioDto);
+      const updatedPortfolio = await this.portfolioRepository.save(portfolio);
+      return {
+        id: updatedPortfolio.id,
+        name: updatedPortfolio.name,
+        baseCoin: updatedPortfolio.baseCoin,
+        description: updatedPortfolio.description,
+      };
     } catch (error) {
-      handlePostgresError(error)
+      handlePostgresError(error);
     }
   }
 
-  async remove(id: string, userId: string) {
-    const portfolio = await this.findOne(id, userId)
+  async remove(id: string, userId: string): Promise<boolean> {
+    const portfolio = await this.findOne(id, userId);
 
     await this.dataSource.transaction(async (manager) => {
       await manager.softDelete(Transaction, {
-        portfolio
+        portfolio,
       });
 
       await manager.softDelete(PortfolioAsset, {
-        portfolio
+        portfolio,
       });
 
       await manager.softDelete(Portfolio, { id });
     });
-    return true
+    return true;
   }
 
-  async findOne(id: string, userId: string) {
+  async findOne(id: string, userId: string): Promise<Portfolio> {
     try {
       const portfolio = await this.portfolioRepository.findOne({
         where: {
           id: id,
           user: {
-            id: userId
-          }
+            id: userId,
+          },
         },
         relations: {
-          assets: true
-        }
-      })
+          assets: true,
+        },
+      });
 
       if (!portfolio) {
-        throw new NotFoundException(`Portfolio with ID = ${id} was not found`)
+        throw new NotFoundException(`Portfolio with ID = ${id} was not found`);
       }
       return portfolio;
     } catch (error) {
-      handlePostgresError(error)
+      handlePostgresError(error);
     }
   }
 }
