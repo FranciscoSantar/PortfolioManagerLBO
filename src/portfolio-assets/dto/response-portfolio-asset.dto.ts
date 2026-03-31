@@ -11,7 +11,7 @@ export class AssetDataWithCurrentValue {
   totalValue: number;
   quantity: number;
   unitPrice: number;
-  changePercent: number;
+  roi: number;
   avgBuyPrice: number;
 }
 
@@ -20,5 +20,5 @@ export class ResponsePortfolioAssetDto {
   totalAssets: number;
   totalValue: number;
   totalInvested: number;
-  totalChangePercent: number;
+  totalRoi: number;
 }

@@ -14,7 +14,10 @@ import { Asset } from '../../assets/entities/asset.entity';
 import { Portfolio } from '../../portfolios/entities/portfolio.entity';
 
 @Entity()
-@Index(['asset', 'portfolio'], { unique: true })
+@Index('unique_asset_portfolio', ['asset', 'portfolio'], {
+  unique: true,
+  where: 'deleted_at IS NULL',
+})
 export class PortfolioAsset {
 
   @PrimaryGeneratedColumn('uuid')
