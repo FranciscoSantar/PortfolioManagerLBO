@@ -1,25 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { AuthGuard } from '@nestjs/passport';
-import { User } from './decorators/user.decorator';
 import { Public } from './decorators/public.decorator';
+import { LoginResponseDto, RegisterResponseDto } from './dto/response.dto';
 
-@Controller('')
+@ApiTags('Authentication')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
+  @ApiCreatedResponse({ description: 'User registered successfully', type: RegisterResponseDto })
+  @ApiBadRequestResponse({ description: 'Invalid input data' })
   @Public()
   @Post('register')
-  register(@Body() createUserDto: CreateUserDto) {
+  register(@Body() createUserDto: CreateUserDto): Promise<RegisterResponseDto> {
     return this.authService.register(createUserDto);
   }
 
+  @ApiOkResponse({ description: 'User logged in successfully', type: LoginResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   @Public()
   @Post('login')
-  @HttpCode(200)
-  login(@Body() loginUserDto: LoginUserDto) {
+  login(@Body() loginUserDto: LoginUserDto): Promise<LoginResponseDto> {
     return this.authService.login(loginUserDto);
   }
 }

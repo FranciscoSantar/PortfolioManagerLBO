@@ -1,6 +1,7 @@
+import * as bcrypt from 'bcrypt'
+
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt'
 
 
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -8,6 +9,7 @@ import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UsersService } from '../users/users.service';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { LoginResponseDto, RegisterResponseDto } from './dto/response.dto';
 
 @Injectable()
 export class AuthService {
@@ -17,7 +19,7 @@ export class AuthService {
     private readonly jwtService: JwtService
   ) { }
 
-  async register(createUserDto: CreateUserDto) {
+  async register(createUserDto: CreateUserDto): Promise<RegisterResponseDto> {
     try {
       const hashedPassword = bcrypt.hashSync(createUserDto.password, this.saltRounds);
       createUserDto.password = hashedPassword
@@ -31,7 +33,7 @@ export class AuthService {
       const jwtToken = this.getJwtToken(jwtPayload)
 
       return {
-        ...user,
+        user,
         token: jwtToken
       }
     } catch (error) {
@@ -39,7 +41,7 @@ export class AuthService {
     }
   }
 
-  async login(loginUserDto: LoginUserDto) {
+  async login(loginUserDto: LoginUserDto): Promise<LoginResponseDto> {
     let user;
     const { password, email } = loginUserDto
 
@@ -66,7 +68,7 @@ export class AuthService {
     }
   }
 
-  private getJwtToken(payload: JwtPayload) {
+  private getJwtToken(payload: JwtPayload): string {
     const jwtToken = this.jwtService.sign(payload);
     return jwtToken;
   }

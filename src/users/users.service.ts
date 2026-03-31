@@ -6,6 +6,7 @@ import { DataSource, IsNull, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Portfolio } from '../portfolios/entities/portfolio.entity';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
+import { CreatedUserResponseDto } from './dto/response-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,7 +18,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) { }
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<CreatedUserResponseDto> {
     try {
       const user = this.userRepository.create(createUserDto);
       await this.userRepository.save(user);
@@ -33,7 +34,7 @@ export class UsersService {
     }
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<User> {
     try {
       const user = await this.userRepository.findOne({
         where: {
@@ -52,7 +53,7 @@ export class UsersService {
     }
   }
 
-  async findByEmailForLogin(email: string) {
+  async findByEmailForLogin(email: string): Promise<User> {
     try {
       const user = await this.userRepository.findOne({
         where: {
@@ -76,7 +77,7 @@ export class UsersService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<boolean> {
     const user = await this.findById(id)
 
     await this.dataSource.transaction(async (manager) => {
