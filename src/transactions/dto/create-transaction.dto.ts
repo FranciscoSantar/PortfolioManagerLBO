@@ -60,8 +60,9 @@ export class CreateTransactionDto {
     enum: CommissionType,
     required: false,
   })
+  @IsOptional()
   @IsEnum(CommissionType)
-  commissionType: CommissionType;
+  commissionType?: CommissionType;
 
   @ApiProperty({
     description: 'The ID of the asset involved in the transaction',

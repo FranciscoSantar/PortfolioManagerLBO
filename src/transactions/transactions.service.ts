@@ -74,13 +74,17 @@ export class TransactionsService {
           transactionData.unitPrice = Number(portfolioAssetCurrentPrice.price);
         }
 
-        const { quantity, unitPrice, commission, commissionType } =
-          transactionData;
+        const {
+          quantity,
+          unitPrice,
+          commission,
+          commissionType = CommissionType.NONE,
+        } = transactionData;
         const parsedQuantity = Number(quantity);
         const parsedUnitPrice = Number(unitPrice);
-        const parsedCommission = Number(commission);
+        const parsedCommission = Number(commission ?? 0);
 
-        const commissionAmount = this.getCommissionAmout(
+        const commissionAmount = this.getCommissionAmount(
           parsedQuantity,
           parsedUnitPrice,
           parsedCommission,
@@ -490,7 +494,7 @@ export class TransactionsService {
     return this.transactionRepository.exists({});
   }
 
-  private getCommissionAmout(
+  private getCommissionAmount(
     quantity: number,
     unitPrice: number,
     commission: number,

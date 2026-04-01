@@ -42,10 +42,10 @@ export class ReportsService {
       );
 
       const assetsDataForSheet = portfolioData.assets.map((asset) => ({
-        'Ticker': asset.info.ticker,
-        'Nombre': asset.info.name,
-        'Tipo': asset.info.type,
-        'Cantidad': asset.quantity,
+        Ticker: asset.info.ticker,
+        Nombre: asset.info.name,
+        Tipo: asset.info.type,
+        Cantidad: asset.quantity,
         'Precio Actual': asset.unitPrice,
         'Precio Promedio de compra': asset.avgBuyPrice,
         'Valor Total': asset.totalValue,
@@ -57,29 +57,37 @@ export class ReportsService {
         'Activos',
       );
 
-      for (const assetData of portfolioData.assets) {
-        const assetId = assetData.info.id;
-        const assetTransactions =
-          await this.transactionService.findAllTransactionsOfPortfolioAssetEnties(
+      const assetTransactionResults = await Promise.all(
+        portfolioData.assets.map((assetData) =>
+          this.transactionService.findAllTransactionsOfPortfolioAssetEnties(
             portfolioId,
-            assetId,
+            assetData.info.id,
             userId,
-          );
+          ),
+        ),
+      );
+
+      for (let i = 0; i < portfolioData.assets.length; i++) {
+        const assetData = portfolioData.assets[i];
+        const assetTransactions = assetTransactionResults[i];
 
         const transactionsDataForSheet = assetTransactions.transactions.map(
           (transaction) => ({
-            'Fecha': transaction.createdAt,
-            'Operación': transaction.operation,
-            'Cantidad': roundToDecimals(Number(transaction.quantity), 4),
-            'Precio Unitario': roundToDecimals(Number(transaction.unitPrice), 4),
-            'Comisión': roundToDecimals(Number(transaction.commissionAmount), 4),
+            Fecha: transaction.createdAt,
+            Operación: transaction.operation,
+            Cantidad: roundToDecimals(Number(transaction.quantity), 4),
+            'Precio Unitario': roundToDecimals(
+              Number(transaction.unitPrice),
+              4,
+            ),
+            Comisión: roundToDecimals(Number(transaction.commissionAmount), 4),
           }),
         );
-        const sheetName = `${assetData.info.ticker}`;
+
         XLSX.utils.book_append_sheet(
           workbook,
           XLSX.utils.json_to_sheet(transactionsDataForSheet),
-          sheetName,
+          `${assetData.info.ticker}`,
         );
       }
 
