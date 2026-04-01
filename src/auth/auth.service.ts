@@ -39,20 +39,26 @@ export class AuthService {
 
       const jwtToken = this.getJwtToken(jwtPayload);
 
-      this.logger.info('User registered successfully', {
-        userId: user.id,
-        email: user.email,
-      });
+      this.logger.info(
+        {
+          userId: user.id,
+          email: user.email,
+        },
+        'User registered successfully',
+      );
 
       return {
         user,
         token: jwtToken,
       };
     } catch (error: unknown) {
-      this.logger.error('Error during user registration', {
-        email: createUserDto.email,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          email: createUserDto.email,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error during user registration',
+      );
       handlePostgresError(error);
     }
   }
@@ -64,9 +70,7 @@ export class AuthService {
     try {
       user = await this.userService.findByEmailForLogin(email);
     } catch {
-      this.logger.warn('Failed login because of non-existing email', {
-        email,
-      });
+      this.logger.warn({ email }, 'Failed login because of non-existing email');
       throw new UnauthorizedException(`Invalid Credentials`);
     }
 
@@ -74,9 +78,7 @@ export class AuthService {
       const passwordMatch = bcrypt.compareSync(password, user.password);
 
       if (!passwordMatch) {
-        this.logger.warn('Failed login because of invalid password', {
-          email,
-        });
+        this.logger.warn({ email }, 'Failed login because of invalid password');
         throw new UnauthorizedException(`Invalid Credentials`);
       }
 
@@ -86,19 +88,25 @@ export class AuthService {
       };
 
       const jwtToken = this.getJwtToken(jwtPayload);
-      this.logger.info('User logged in successfully', {
-        userId: user.id,
-        email: user.email,
-      });
+      this.logger.info(
+        {
+          userId: user.id,
+          email: user.email,
+        },
+        'User logged in successfully',
+      );
 
       return {
         token: jwtToken,
       };
     } catch (error: unknown) {
-      this.logger.error('Error during user login', {
-        email,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          email,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error during user login',
+      );
       handlePostgresError(error);
     }
   }

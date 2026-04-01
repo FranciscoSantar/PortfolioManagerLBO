@@ -82,20 +82,26 @@ export class ReportsService {
         );
       }
 
-      this.logger.info('Report generated successfully', {
-        portfolioId,
-        userId,
-      });
+      this.logger.info(
+        {
+          portfolioId,
+          userId,
+        },
+        'Report generated successfully',
+      );
 
       return Buffer.from(
         XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }),
       );
     } catch (error: unknown) {
-      this.logger.error('Error generating report', {
-        portfolioId,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error generating report',
+      );
 
       handlePostgresError(error);
     }

@@ -58,9 +58,12 @@ export class SeedService {
 
       this.logger.info('Database seeding completed successfully');
     } catch (error: unknown) {
-      this.logger.error('Error during database seeding', {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error during database seeding',
+      );
       throw error;
     }
   }

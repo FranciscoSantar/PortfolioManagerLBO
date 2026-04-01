@@ -40,9 +40,10 @@ export class AssetsService {
       );
       return assetsShortResponseDto;
     } catch (error: unknown) {
-      this.logger.error('Error fetching all assets', {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        { error: error instanceof Error ? error.message : String(error) },
+        'Error fetching all assets',
+      );
       handlePostgresError(error);
     }
   }
@@ -63,10 +64,10 @@ export class AssetsService {
       }
       return asset;
     } catch (error: unknown) {
-      this.logger.error(`Error fetching asset`, {
-        id,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        { id, error: error instanceof Error ? error.message : String(error) },
+        'Error fetching asset',
+      );
       handlePostgresError(error);
     }
   }
@@ -78,9 +79,10 @@ export class AssetsService {
     const stocksAssetType = await this.assetTypeService.getByType(assetType);
 
     if (!stocksAssetType) {
-      this.logger.error('Asset type for seeding assets was not found', {
-        assetType,
-      });
+      this.logger.error(
+        { assetType },
+        'Asset type for seeding assets was not found',
+      );
       throw new Error(`Asset type ${assetType} was not found.`);
     }
 
@@ -92,10 +94,10 @@ export class AssetsService {
     );
 
     await this.assetRepository.save(assetsEntities);
-    this.logger.info('Assets seeded successfully during seeding process', {
-      count: assetsEntities.length,
-      assetType: assetType,
-    });
+    this.logger.info(
+      { count: assetsEntities.length, assetType: assetType },
+      'Assets seeded successfully during seeding process',
+    );
   }
 
   async updatePrice(ticker: string): Promise<YahooAssetPriceDto> {
@@ -107,10 +109,8 @@ export class AssetsService {
       });
       if (!asset) {
         this.logger.warn(
+          { ticker },
           `Attempt to update price for non-existing asset with ticker: ${ticker}`,
-          {
-            ticker,
-          },
         );
         throw new NotFoundException(
           `Asset with ticker: ${ticker} does not exist.`,
@@ -121,10 +121,8 @@ export class AssetsService {
         await this.yahooFinanceService.updatePriceByTicker(ticker);
       if (!updatePriceSuccess) {
         this.logger.error(
+          { ticker },
           `Error during the update of the price of: ${ticker}`,
-          {
-            ticker,
-          },
         );
         throw new InternalServerErrorException(
           `Error during the update of the price of: ${ticker}`,
@@ -132,20 +130,24 @@ export class AssetsService {
       }
 
       this.logger.info(
+        { ticker, price: updatePriceSuccess.price },
         `Price updated successfully for asset with ticker: ${ticker}`,
-        {
-          ticker,
-          price: updatePriceSuccess.price,
-        },
       );
       return updatePriceSuccess;
     } catch (error: unknown) {
-      this.logger.error(`Error during the update of the price of: ${ticker}`, {
-        ticker,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          ticker,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        `Error during the update of the price of: ${ticker}`,
+      );
       handlePostgresError(error);
     }
+  }
+
+  async deleteAllForSeeding(): Promise<void> {
+    await this.assetRepository.createQueryBuilder().delete().execute();
   }
 
   private toResponseDto(asset: Asset): ShortResponseAssetDto {

@@ -56,11 +56,14 @@ export class PortfolioAssetsService {
 
       return portfolioAsset;
     } catch (error: unknown) {
-      this.logger.error('Error fetching portfolio asset', {
-        portfolioId,
-        assetId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId,
+          assetId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching portfolio asset',
+      );
       handlePostgresError(error);
     }
   }
@@ -176,16 +179,20 @@ export class PortfolioAssetsService {
 
       const orderedResponse = this.orderPortfolioAssets(response, queryDto);
 
-      this.logger.info('Portfolio assets info calculated successfully', {
-        portfolioId,
-      });
+      this.logger.info(
+        { portfolioId },
+        'Portfolio assets info calculated successfully',
+      );
 
       return orderedResponse;
     } catch (error: unknown) {
-      this.logger.error('Error calculating portfolio assets info', {
-        portfolioId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error calculating portfolio assets info',
+      );
       handlePostgresError(error);
     }
   }
@@ -198,9 +205,7 @@ export class PortfolioAssetsService {
         await this.getPortfolioAssetsByPortfolioId(portfolioId);
 
       if (portfolioAssets.length === 0) {
-        this.logger.debug(`No assets found for portfolio`, {
-          portfolioId,
-        });
+        this.logger.debug({ portfolioId }, 'No assets found for portfolio');
         return { totalAssets: 0, totalValue: 0 };
       }
 
@@ -215,10 +220,13 @@ export class PortfolioAssetsService {
         await this.getPortfolioTotalAssetsAndTotalValue(portfolioAssets);
       return portfolioTotalValueAndTotalAssets;
     } catch (error: unknown) {
-      this.logger.error('Error calculating portfolio summary', {
-        portfolioId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error calculating portfolio summary',
+      );
 
       handlePostgresError(error);
     }
@@ -240,12 +248,15 @@ export class PortfolioAssetsService {
       });
 
       if (!portfolioAsset) {
-        this.logger.error(`Attempt to delete non-existing portfolio asset`, {
-          portfolioId,
-          assetId,
-          portfolioAssetId,
-          userId,
-        });
+        this.logger.error(
+          {
+            portfolioId,
+            assetId,
+            portfolioAssetId,
+            userId,
+          },
+          'Attempt to delete non-existing portfolio asset',
+        );
 
         throw new NotFoundException(
           `Portfolio Asset with ID = ${portfolioAssetId} does not exist.`,
@@ -253,21 +264,27 @@ export class PortfolioAssetsService {
       }
 
       await this.portfolioAssetRepository.softRemove(portfolioAsset);
-      this.logger.info('Portfolio asset deleted successfully', {
-        portfolioAssetId,
-        portfolioId,
-        assetId,
-        userId,
-      });
+      this.logger.info(
+        {
+          portfolioAssetId,
+          portfolioId,
+          assetId,
+          userId,
+        },
+        'Portfolio asset deleted successfully',
+      );
       return true;
     } catch (error: unknown) {
-      this.logger.error('Error deleting portfolio asset', {
-        portfolioId,
-        assetId,
-        portfolioAssetId,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId,
+          assetId,
+          portfolioAssetId,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error deleting portfolio asset',
+      );
       handlePostgresError(error);
     }
   }

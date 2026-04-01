@@ -27,10 +27,13 @@ export class AssetTypesService {
     const assetTypesEntities = this.assetTypeRepository.create(assetTypesDtos);
     await this.assetTypeRepository.save(assetTypesEntities);
 
-    this.logger.info('Asset types seeded successfully', {
-      count: assetTypesEntities.length,
-      assetTypes: assetTypesEntities.map((assetType) => assetType.type),
-    });
+    this.logger.info(
+      {
+        count: assetTypesEntities.length,
+        assetTypes: assetTypesEntities.map((assetType) => assetType.type),
+      },
+      'Asset types seeded successfully',
+    );
   }
 
   async checkIfExists() {
@@ -54,10 +57,13 @@ export class AssetTypesService {
       }
       return assetType;
     } catch (error: unknown) {
-      this.logger.error('Error fetching asset type by type', {
-        type,
-        error,
-      });
+      this.logger.error(
+        {
+          type,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching asset type by type',
+      );
       handlePostgresError(error);
     }
   }

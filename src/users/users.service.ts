@@ -36,10 +36,13 @@ export class UsersService {
         email,
       };
     } catch (error: unknown) {
-      this.logger.error('Error creating user', {
-        email: createUserDto.email,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          email: createUserDto.email,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error creating user',
+      );
       handlePostgresError(error);
     }
   }
@@ -59,10 +62,13 @@ export class UsersService {
 
       return user;
     } catch (error: unknown) {
-      this.logger.error('Error fetching user by ID', {
-        userId: id,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          userId: id,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching user by ID',
+      );
       handlePostgresError(error);
     }
   }
@@ -87,10 +93,13 @@ export class UsersService {
 
       return user;
     } catch (error: unknown) {
-      this.logger.error('Error fetching user by email for login', {
-        email,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          email,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching user by email for login',
+      );
       handlePostgresError(error);
     }
   }
@@ -116,16 +125,22 @@ export class UsersService {
           id,
         });
       });
-      this.logger.info('User deleted successfully', {
-        userId: id,
-        email: user.email,
-      });
+      this.logger.info(
+        {
+          userId: id,
+          email: user.email,
+        },
+        'User deleted successfully',
+      );
       return true;
     } catch (error: unknown) {
-      this.logger.error('Error during user deletion', {
-        userId: id,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          userId: id,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error during user deletion',
+      );
       handlePostgresError(error);
     }
   }

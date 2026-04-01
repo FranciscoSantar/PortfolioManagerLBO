@@ -39,28 +39,31 @@ export class YahooFinanceService {
     const cachedPrice =
       await this.cacheManager.get<YahooAssetPriceDto>(assetPriceCacheKey);
     if (cachedPrice) {
-      this.logger.debug(`Cache hit for asset with ticker: ${ticker}`, {
-        ticker,
-        price: cachedPrice.price,
-      });
+      this.logger.debug(
+        {
+          ticker,
+          price: cachedPrice.price,
+        },
+        `Cache hit for asset with ticker: ${ticker}`,
+      );
       return cachedPrice;
     }
 
     this.logger.debug(
-      `Cache miss for asset with ticker: ${ticker}. Fetching price from provider.`,
       {
         ticker,
       },
+      `Cache miss for asset with ticker: ${ticker}. Fetching price from provider.`,
     );
 
     const yahooFinanceData = await this.fetchYahooFinance([ticker]);
 
     if (!yahooFinanceData || !yahooFinanceData[0].regularMarketPrice) {
       this.logger.error(
-        `Error fetching price from provider for asset ${ticker}. Price is missing`,
         {
           ticker,
         },
+        `Error fetching price from provider for asset ${ticker}. Price is missing`,
       );
       throw new BadGatewayException(
         'Error fetching prices from the provider. Price is missing',
@@ -130,10 +133,10 @@ export class YahooFinanceService {
           assetUpdated--;
 
           this.logger.warn(
-            `Error fetching prices from the provider. Price of ${yahooFinanceAsset.symbol} is missing`,
             {
               symbol: yahooFinanceAsset.symbol as string,
             },
+            `Error fetching prices from the provider. Price of ${yahooFinanceAsset.symbol} is missing`,
           );
 
           continue;
@@ -156,10 +159,13 @@ export class YahooFinanceService {
       }
     }
 
-    this.logger.info('Asset prices updated successfully', {
-      totalAssets: assetsList.length,
-      assetsUpdated: assetUpdated,
-    });
+    this.logger.info(
+      {
+        totalAssets: assetsList.length,
+        assetsUpdated: assetUpdated,
+      },
+      'Asset prices updated successfully',
+    );
     return assetsPrices;
   }
 
@@ -174,19 +180,22 @@ export class YahooFinanceService {
         yahooFinanceData.push(...data);
       }
     } catch (error: unknown) {
-      this.logger.error('Error fetching prices from the provider', {
-        assetList,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          assetList,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching prices from the provider',
+      );
       throw new BadGatewayException('Error fetching prices from the provider');
     }
 
     if (yahooFinanceData.length === 0) {
       this.logger.error(
-        'Error fetching prices from the provider. No data returned',
         {
           assetList,
         },
+        'Error fetching prices from the provider. No data returned',
       );
       throw new BadGatewayException('Error fetching prices from the provider');
     }

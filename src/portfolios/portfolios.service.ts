@@ -48,12 +48,7 @@ export class PortfoliosService {
       });
 
       await this.portfolioRepository.save(portfolio);
-      this.logger.info('Portfolio created successfully', {
-        portfolioId: portfolio.id,
-        name: portfolio.name,
-        baseCoin: portfolio.baseCoin,
-        userId,
-      });
+      this.logger.info({ portfolio, userId }, 'Portfolio created successfully');
 
       return {
         id: portfolio.id,
@@ -62,12 +57,15 @@ export class PortfoliosService {
         description: portfolio.description,
       };
     } catch (error: unknown) {
-      this.logger.error('Error creating portfolio', {
-        name: createPortfolioDto.name,
-        baseCoin: createPortfolioDto.baseCoin,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          name: createPortfolioDto.name,
+          baseCoin: createPortfolioDto.baseCoin,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error creating portfolio',
+      );
 
       handlePostgresError(error);
     }
@@ -111,10 +109,13 @@ export class PortfoliosService {
         totalPages,
       };
     } catch (error: unknown) {
-      this.logger.error('Error fetching portfolios', {
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching portfolios',
+      );
 
       handlePostgresError(error);
     }
@@ -133,11 +134,14 @@ export class PortfoliosService {
         await this.portfolioAssetService.getInfoOfPortfolioAssets(id, queryDto);
       return portfolioAssetsData;
     } catch (error: unknown) {
-      this.logger.error('Error fetching portfolio data', {
-        portfolioId: id,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId: id,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching portfolio data',
+      );
       handlePostgresError(error);
     }
   }
@@ -152,12 +156,15 @@ export class PortfoliosService {
       this.portfolioRepository.merge(portfolio, updatePortfolioDto);
       const updatedPortfolio = await this.portfolioRepository.save(portfolio);
 
-      this.logger.info('Portfolio updated successfully', {
-        portfolioId: updatedPortfolio.id,
-        name: updatedPortfolio.name,
-        baseCoin: updatedPortfolio.baseCoin,
-        userId,
-      });
+      this.logger.info(
+        {
+          portfolioId: updatedPortfolio.id,
+          name: updatedPortfolio.name,
+          baseCoin: updatedPortfolio.baseCoin,
+          userId,
+        },
+        'Portfolio updated successfully',
+      );
 
       return {
         id: updatedPortfolio.id,
@@ -166,11 +173,14 @@ export class PortfoliosService {
         description: updatedPortfolio.description,
       };
     } catch (error: unknown) {
-      this.logger.error('Error updating portfolio', {
-        portfolioId: id,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId: id,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error updating portfolio',
+      );
       handlePostgresError(error);
     }
   }
@@ -187,10 +197,13 @@ export class PortfoliosService {
         await manager.softDelete(Portfolio, { id });
       });
 
-      this.logger.info('Portfolio deleted successfully', {
-        portfolioId: id,
-        userId,
-      });
+      this.logger.info(
+        {
+          portfolioId: id,
+          userId,
+        },
+        'Portfolio deleted successfully',
+      );
 
       return true;
     } catch (error: unknown) {
@@ -222,19 +235,25 @@ export class PortfoliosService {
       });
 
       if (!portfolio) {
-        this.logger.warn('Portfolio not found', {
-          portfolioId: id,
-          userId,
-        });
+        this.logger.warn(
+          {
+            portfolioId: id,
+            userId,
+          },
+          'Portfolio not found',
+        );
         throw new NotFoundException(`Portfolio with ID = ${id} was not found`);
       }
       return portfolio;
     } catch (error: unknown) {
-      this.logger.error('Error fetching portfolio', {
-        portfolioId: id,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId: id,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching portfolio',
+      );
       handlePostgresError(error);
     }
   }

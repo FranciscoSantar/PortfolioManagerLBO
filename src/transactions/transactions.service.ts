@@ -100,11 +100,11 @@ export class TransactionsService {
         if (!portfolioAsset) {
           if (transactionData.operation === TransactionType.SELL) {
             this.logger.warn(
-              'Attempt to sell an asset that does not exist in the portfolio',
               {
                 portfolioId,
                 assetId,
               },
+              'Attempt to sell an asset that does not exist in the portfolio',
             );
 
             throw new BadRequestException(
@@ -113,7 +113,6 @@ export class TransactionsService {
           }
 
           this.logger.info(
-            'First time buying this asset, creating new portfolio asset',
             {
               portfolioId,
               assetId,
@@ -121,6 +120,7 @@ export class TransactionsService {
               unitPrice: transactionData.unitPrice,
               commissionAmount,
             },
+            'First time buying this asset, creating new portfolio asset',
           );
 
           // First Buy, create PortfolioAsset
@@ -148,13 +148,13 @@ export class TransactionsService {
             parsedPortfolioAssetQuantity < parsedTransactionQuantity
           ) {
             this.logger.warn(
-              'Attempt to sell more quantity than the one available in the portfolio',
               {
                 portfolioId,
                 assetId,
                 attemptedSellQuantity: parsedTransactionQuantity,
                 availableQuantity: parsedPortfolioAssetQuantity,
               },
+              'Attempt to sell more quantity than the one available in the portfolio',
             );
 
             throw new BadRequestException(
@@ -184,11 +184,14 @@ export class TransactionsService {
 
           // Delete if the asset has been completely sold
           if (portfolioAssetNewQuantity === 0) {
-            this.logger.info('Asset completely sold, removing from portfolio', {
-              portfolioId,
-              assetId,
-              portfolioAssetId: portfolioAsset.id,
-            });
+            this.logger.info(
+              {
+                portfolioId,
+                assetId,
+                portfolioAssetId: portfolioAsset.id,
+              },
+              'Asset completely sold, removing from portfolio',
+            );
 
             await manager.remove(portfolioAsset);
           } else {
@@ -216,15 +219,14 @@ export class TransactionsService {
         return transaction;
       });
 
-      this.logger.info('Transaction created successfully', {
-        transactionId: transaction.id,
-        portfolioId,
-        assetId,
-        quantity: transaction.quantity,
-        operation: transaction.operation,
-        unitPrice: transaction.unitPrice,
-        commission: transaction.commissionAmount,
-      });
+      this.logger.info(
+        {
+          transaction,
+          portfolioId,
+          assetId,
+        },
+        'Transaction created successfully',
+      );
 
       return {
         id: transaction.id,
@@ -234,11 +236,14 @@ export class TransactionsService {
         commission: Number(transaction.commissionAmount),
       };
     } catch (error: unknown) {
-      this.logger.error('Error creating transaction', {
-        portfolioId,
-        createTransactionDto,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId,
+          createTransactionDto,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error creating transaction',
+      );
       handlePostgresError(error);
     }
   }
@@ -300,12 +305,15 @@ export class TransactionsService {
         totalCommission: totalComissionsAmount,
       };
     } catch (error: unknown) {
-      this.logger.error('Error fetching transactions of portfolio', {
-        portfolioId,
-        userId,
-        filterDto,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId,
+          userId,
+          filterDto,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching transactions of portfolio',
+      );
       handlePostgresError(error);
     }
   }
@@ -333,10 +341,13 @@ export class TransactionsService {
         throw new NotFoundException(`Transaction with id ${id} was not found.`);
       }
 
-      this.logger.info('Transaction fetched successfully', {
-        transactionId: transaction.id,
-        portfolioId,
-      });
+      this.logger.info(
+        {
+          transactionId: transaction.id,
+          portfolioId,
+        },
+        'Transaction fetched successfully',
+      );
 
       return {
         id: transaction.id,
@@ -346,12 +357,15 @@ export class TransactionsService {
         commission: Number(transaction.commissionAmount),
       };
     } catch (error: unknown) {
-      this.logger.error('Error fetching transaction in portfolio', {
-        id,
-        portfolioId,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          id,
+          portfolioId,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching transaction in portfolio',
+      );
       handlePostgresError(error);
     }
   }
@@ -405,12 +419,15 @@ export class TransactionsService {
         asset: assetResponseDto,
       };
     } catch (error: unknown) {
-      this.logger.error('Error fetching transactions of portfolio asset', {
-        portfolioId,
-        assetId,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId,
+          assetId,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error fetching transactions of portfolio asset',
+      );
       handlePostgresError(error);
     }
   }
@@ -445,14 +462,15 @@ export class TransactionsService {
       };
     } catch (error: unknown) {
       this.logger.error(
-        'Error fetching transactions of portfolio asset entities',
         {
           portfolioId,
           assetId,
           userId,
           error: error instanceof Error ? error.message : String(error),
         },
+        'Error fetching transactions of portfolio asset entities',
       );
+
       handlePostgresError(error);
     }
   }
