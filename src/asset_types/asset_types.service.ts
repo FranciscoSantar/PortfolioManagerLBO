@@ -1,4 +1,5 @@
 import { In, Repository } from 'typeorm';
+import { PinoLogger } from 'nestjs-pino';
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,11 +14,15 @@ export class AssetTypesService {
   constructor(
     @InjectRepository(AssetType)
     private readonly assetTypeRepository: Repository<AssetType>,
-  ) { }
+    private readonly logger: PinoLogger
+  ) {
+    this.logger.setContext(AssetTypesService.name)
+  }
 
   async saveForSeeding(assetTypes: string[]) {
     const isPopulated = await this.checkIfExists()
     if (isPopulated) {
+      this.logger.warn('Attempt to seed Asset Types table when it is already populated')
       throw new Error('Asset Type table is already populated.')
     }
 
@@ -28,6 +33,11 @@ export class AssetTypesService {
 
     const assetTypesEntities = this.assetTypeRepository.create(assetTypesDtos);
     await this.assetTypeRepository.save(assetTypesEntities)
+
+    this.logger.info('Asset types seeded successfully', {
+      count: assetTypesEntities.length,
+      assetTypes: assetTypesEntities.map((assetType) => assetType.type)
+    })
   }
 
   async checkIfExists() {
@@ -51,6 +61,10 @@ export class AssetTypesService {
       }
       return assetType
     } catch (error) {
+      this.logger.error('Error fetching asset type by type', {
+        type,
+        error
+      })
       handlePostgresError(error)
     }
   }

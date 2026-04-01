@@ -1,8 +1,10 @@
+import { DataSource, IsNull, Repository } from 'typeorm';
+import { PinoLogger } from 'nestjs-pino';
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
-import { DataSource, IsNull, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Portfolio } from '../portfolios/entities/portfolio.entity';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
@@ -18,7 +20,10 @@ export class UsersService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) { }
+    private readonly logger: PinoLogger
+  ) {
+    this.logger.setContext(UsersService.name)
+  }
 
   async create(createUserDto: CreateUserDto): Promise<CreatedUserResponseDto> {
     try {
@@ -108,8 +113,16 @@ export class UsersService {
           id
         });
       });
+      this.logger.info('User deleted successfully', {
+        userId: id,
+        email: user.email
+      })
       return true
     } catch (error) {
+      this.logger.error('Error during user deletion', {
+        userId: id,
+        error
+      })
       handlePostgresError(error)
     }
   }

@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
+import { LoggerModule } from 'nestjs-pino';
 
 
 import { AppController } from './app.controller';
@@ -24,6 +25,36 @@ import configuration from '../config/configuration';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
+    }),
+
+    LoggerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const isProd = config.get<boolean>('isProd');
+
+        return {
+          pinoHttp: {
+            level: isProd ? 'info' : 'debug',
+            transport: isProd
+              ? undefined
+              : {
+                target: 'pino-pretty',
+              },
+            autoLogging: false,
+            customProps: (req, res) => ({
+              http: {
+                method: req.method,
+                url: req.url,
+                statusCode: res.statusCode,
+              },
+            }),
+            serializers: {
+              req: () => undefined,
+              res: () => undefined,
+            },
+          }
+        };
+      },
     }),
 
     TypeOrmModule.forRootAsync({
