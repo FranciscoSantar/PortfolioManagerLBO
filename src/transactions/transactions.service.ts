@@ -234,6 +234,8 @@ export class TransactionsService {
         operation: transaction.operation,
         unitPrice: Number(transaction.unitPrice),
         commission: Number(transaction.commissionAmount),
+        date: transaction.createdAt,
+        assetId: asset.id,
       };
     } catch (error: unknown) {
       this.logger.error(
@@ -292,6 +294,8 @@ export class TransactionsService {
         operation: transaction.operation,
         unitPrice: Number(transaction.unitPrice),
         commission: Number(transaction.commissionAmount),
+        date: transaction.createdAt,
+        assetId: transaction.asset.id,
       }));
 
       const totalComissionsAmount = transactions.reduce(
@@ -335,6 +339,9 @@ export class TransactionsService {
             id: portfolio.id,
           },
         },
+        relations: {
+          asset: true,
+        },
       });
 
       if (!transaction) {
@@ -355,6 +362,8 @@ export class TransactionsService {
         operation: transaction.operation,
         unitPrice: Number(transaction.unitPrice),
         commission: Number(transaction.commissionAmount),
+        date: transaction.createdAt,
+        assetId: transaction.asset.id,
       };
     } catch (error: unknown) {
       this.logger.error(
@@ -405,6 +414,8 @@ export class TransactionsService {
         operation: transaction.operation,
         unitPrice: Number(transaction.unitPrice),
         commission: Number(transaction.commissionAmount),
+        date: transaction.createdAt,
+        assetId: transaction.asset.id,
       }));
 
       const assetResponseDto = {

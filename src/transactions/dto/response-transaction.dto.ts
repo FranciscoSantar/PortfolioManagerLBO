@@ -33,6 +33,17 @@ export class ShortResponseTransactionDto {
     example: 5.0,
   })
   commission?: number;
+
+  @ApiProperty({
+    description: 'The date and time when the transaction was executed',
+    example: '2024-06-01T14:30:00Z',
+  })
+  date: Date;
+
+  @ApiProperty({
+    description: 'The asset involved in the transaction',
+  })
+  assetId: string;
 }
 
 export class ResponseTransactionsWithTotalCommissionDto {
