@@ -38,6 +38,10 @@ import configuration from './config/configuration';
               ? undefined
               : {
                   target: 'pino-pretty',
+                  options: {
+                    colorize: true,
+                    translateTime: 'yyyy-mm-dd HH:MM:ss',
+                  },
                 },
             autoLogging: false,
             customProps: (req, res) => ({
