@@ -309,9 +309,11 @@ export class PortfolioAssetsService {
           Number(portfolioAsset.quantity) * Number(cachedPrice.price);
       }
     }
+
+    const totalValueRounded = roundToDecimals(totalValue, 4);
     return {
       totalAssets,
-      totalValue,
+      totalValue: totalValueRounded,
     };
   }
 

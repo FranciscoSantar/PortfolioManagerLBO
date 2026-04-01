@@ -6,6 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { PortfoliosService } from '../portfolios/portfolios.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
+import { roundToDecimals } from '../common/utils/float-parser';
 @Injectable()
 export class ReportsService {
   constructor(
@@ -41,10 +42,10 @@ export class ReportsService {
       );
 
       const assetsDataForSheet = portfolioData.assets.map((asset) => ({
-        Ticker: asset.info.ticker,
-        Nombre: asset.info.name,
-        Tipo: asset.info.type,
-        Cantidad: asset.quantity,
+        'Ticker': asset.info.ticker,
+        'Nombre': asset.info.name,
+        'Tipo': asset.info.type,
+        'Cantidad': asset.quantity,
         'Precio Actual': asset.unitPrice,
         'Precio Promedio de compra': asset.avgBuyPrice,
         'Valor Total': asset.totalValue,
@@ -67,11 +68,11 @@ export class ReportsService {
 
         const transactionsDataForSheet = assetTransactions.transactions.map(
           (transaction) => ({
-            Fecha: transaction.createdAt,
-            Operación: transaction.operation,
-            Cantidad: transaction.quantity,
-            'Precio Unitario': transaction.unitPrice,
-            Comisión: transaction.commissionAmount,
+            'Fecha': transaction.createdAt,
+            'Operación': transaction.operation,
+            'Cantidad': roundToDecimals(Number(transaction.quantity), 4),
+            'Precio Unitario': roundToDecimals(Number(transaction.unitPrice), 4),
+            'Comisión': roundToDecimals(Number(transaction.commissionAmount), 4),
           }),
         );
         const sheetName = `${assetData.info.ticker}`;

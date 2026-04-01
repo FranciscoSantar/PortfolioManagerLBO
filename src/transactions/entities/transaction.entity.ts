@@ -46,6 +46,7 @@ export class Transaction {
   createdAt: Date;
 
   @Column({
+    name: 'commission_amount',
     type: 'decimal',
     precision: 12,
     scale: 4,
