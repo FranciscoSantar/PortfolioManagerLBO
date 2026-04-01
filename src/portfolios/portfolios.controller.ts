@@ -8,6 +8,7 @@ import {
   Delete,
   ParseUUIDPipe,
   Query,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -107,6 +108,7 @@ export class PortfoliosController {
   @ApiNotFoundResponse({ description: 'Portfolio not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Delete(':id')
+  @HttpCode(204)
   remove(@Param('id', ParseUUIDPipe) id: string, @User('id') userId: string) {
     return this.portfoliosService.remove(id, userId);
   }

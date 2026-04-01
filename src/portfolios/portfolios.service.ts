@@ -8,7 +8,6 @@ import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
 import { Portfolio } from './entities/portfolio.entity';
 import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
-import { Transaction } from '../transactions/entities/transaction.entity';
 import { PortfolioAssetsService } from '../portfolio-assets/portfolio-assets.service';
 import {
   ShortResponsePortfolioDto,
@@ -181,10 +180,6 @@ export class PortfoliosService {
       const portfolio = await this.findOne(id, userId);
 
       await this.dataSource.transaction(async (manager) => {
-        await manager.softDelete(Transaction, {
-          portfolio,
-        });
-
         await manager.softDelete(PortfolioAsset, {
           portfolio,
         });
@@ -199,11 +194,14 @@ export class PortfoliosService {
 
       return true;
     } catch (error: unknown) {
-      this.logger.error('Error deleting portfolio', {
-        portfolioId: id,
-        userId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      this.logger.error(
+        {
+          portfolioId: id,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Error deleting portfolio',
+      );
 
       handlePostgresError(error);
     }
