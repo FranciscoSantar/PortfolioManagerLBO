@@ -8,7 +8,7 @@ import {
 } from '@nestjs/swagger';
 
 import { AssetsService } from './assets.service';
-import { ShortResponseAssetDto } from './dtos/response-asset.dto';
+import { ResponseFindAllAssetsDto } from './dtos/response-asset.dto';
 import { YahooAssetPriceDto } from '../yahoo-finance/dto/yahoo-asset-price.dto';
 
 @Controller('assets')
@@ -18,7 +18,7 @@ export class AssetsController {
   @ApiOperation({ summary: 'Get all assets' })
   @ApiOkResponse({
     description: 'List of all assets',
-    type: [ShortResponseAssetDto],
+    type: ResponseFindAllAssetsDto,
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiBearerAuth()

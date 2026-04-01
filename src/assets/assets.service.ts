@@ -11,7 +11,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Asset } from './entities/asset.entity';
 import { AssetTypesService } from '../asset_types/asset_types.service';
 import { InsertAssetDto } from './dtos/insert-asset.dto';
-import { ShortResponseAssetDto } from './dtos/response-asset.dto';
+import {
+  ResponseFindAllAssetsDto,
+  ShortResponseAssetDto,
+} from './dtos/response-asset.dto';
 import { YahooFinanceService } from '../yahoo-finance/yahoo-finance.service';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { YahooAssetPriceDto } from '../yahoo-finance/dto/yahoo-asset-price.dto';
@@ -28,7 +31,7 @@ export class AssetsService {
     this.logger.setContext(AssetsService.name);
   }
 
-  async findAll(): Promise<ShortResponseAssetDto[]> {
+  async findAll(): Promise<ResponseFindAllAssetsDto> {
     try {
       const assets = await this.assetRepository.find({
         relations: {
@@ -38,7 +41,7 @@ export class AssetsService {
       const assetsShortResponseDto = assets.map((asset) =>
         this.toResponseDto(asset),
       );
-      return assetsShortResponseDto;
+      return { data: assetsShortResponseDto };
     } catch (error: unknown) {
       this.logger.error(
         { error: error instanceof Error ? error.message : String(error) },

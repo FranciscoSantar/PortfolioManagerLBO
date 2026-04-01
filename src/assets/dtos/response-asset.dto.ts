@@ -15,3 +15,8 @@ export class ShortResponseAssetDto {
   @ApiProperty({ example: 'STOCK', enum: AssetTypeEnum })
   type: string;
 }
+
+export class ResponseFindAllAssetsDto {
+  @ApiProperty({ type: [ShortResponseAssetDto] })
+  data: ShortResponseAssetDto[];
+}
