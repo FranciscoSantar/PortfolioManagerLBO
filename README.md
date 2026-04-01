@@ -113,7 +113,20 @@ Make sure that new assets exist in Yahoo Finance first.
 
 ## Getting Started
 
-### 1. Seed the database
+### 1. Run database migrations
+
+Before seeding, apply the migrations to create all tables:
+
+```bash
+yarn build && yarn migration:run
+```
+
+> Note: when running with Docker:
+> ```bash
+> docker exec portfolioapi yarn migration:run
+> ```
+
+### 2. Seed the database
 
 Run the seed script to populate asset types and all supported assets:
 
@@ -121,12 +134,12 @@ Run the seed script to populate asset types and all supported assets:
 yarn seed
 ```
 
-> Note: when running with Docker, exec into the container first:
+> Note: when running with Docker:
 > ```bash
 > docker exec -it portfolioapi yarn seed:prod
 > ```
 
-### 2. Create a user and get a token
+### 3. Create a user and get a token
 
 ```bash
 curl -X POST http://localhost:8000/v1/api/users \
@@ -153,6 +166,27 @@ Interactive Swagger docs are available at:
 ```
 http://localhost:8000/docs
 ```
+
+### 5. Stopping the application
+
+- Without Docker: `Ctrl + C` in the terminal where the server is running.
+- With Docker: `docker compose down` in the console.
+
+---
+
+## Migrations
+
+This project uses [TypeORM migrations](https://typeorm.io/migrations) to manage database schema changes. Migrations are generated from entity definitions and must be run explicitly.
+
+### Generate a new migration
+
+After modifying any entity, build the project and generate a migration:
+
+```bash
+yarn build && yarn migration:generate src/migrations/<MigrationName>
+```
+
+This compares the current database schema against the entities and generates a timestamped migration file under `src/migrations/`.
 
 ---
 
