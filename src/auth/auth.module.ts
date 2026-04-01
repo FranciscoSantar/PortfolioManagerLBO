@@ -12,7 +12,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 @Module({
   imports: [
     PassportModule.register({
-      defaultStrategy: 'jwt'
+      defaultStrategy: 'jwt',
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -21,19 +21,21 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
         const jwtSecret = config.get('jwtSecret');
         const jwtExpireTime = config.get('jwtExpireTime');
         if (!jwtSecret) {
-          throw new Error('Environment variable JWT_SECRET should be defined before running the app')
+          throw new Error(
+            'Environment variable JWT_SECRET should be defined before running the app',
+          );
         }
         return {
           secret: jwtSecret,
           signOptions: {
-            expiresIn: jwtExpireTime
-          }
-        }
+            expiresIn: jwtExpireTime,
+          },
+        };
       },
     }),
 
     ConfigModule,
-    UsersModule
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -42,7 +44,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
       useClass: JwtAuthGuard,
     },
     AuthService,
-    JwtStrategy],
-  exports: [JwtStrategy, PassportModule, JwtModule]
+    JwtStrategy,
+  ],
+  exports: [JwtStrategy, PassportModule, JwtModule],
 })
-export class AuthModule { }
+export class AuthModule {}

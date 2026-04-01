@@ -24,7 +24,6 @@ export enum BaseCoin {
 @Entity()
 @Index(['name', 'user'], { unique: true })
 export class Portfolio {
-
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

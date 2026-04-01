@@ -1,39 +1,44 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
-import { Portfolio } from "../../portfolios/entities/portfolio.entity";
-import { Asset } from "../../assets/entities/asset.entity";
+import { Portfolio } from '../../portfolios/entities/portfolio.entity';
+import { Asset } from '../../assets/entities/asset.entity';
 
 export enum TransactionType {
   BUY = 'BUY',
-  SELL = 'SELL'
+  SELL = 'SELL',
 }
 
 @Entity()
 export class Transaction {
-
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
     type: 'decimal',
     precision: 12,
-    scale: 6
+    scale: 6,
   })
   quantity: string;
 
   @Column({
     name: 'transaction_type',
     type: 'enum',
-    enum: TransactionType
+    enum: TransactionType,
   })
-
-  operation: TransactionType
+  operation: TransactionType;
 
   @Column({
     type: 'decimal',
     precision: 12,
     scale: 4,
-    name: 'unit_price'
+    name: 'unit_price',
   })
   unitPrice: string;
 
@@ -45,9 +50,8 @@ export class Transaction {
     precision: 12,
     scale: 4,
     default: '0',
-
   })
-  commissionAmount: string
+  commissionAmount: string;
 
   @ManyToOne(() => Portfolio, (portfolio) => portfolio.transactions)
   @JoinColumn({ name: 'portfolio_id' })

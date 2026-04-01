@@ -35,7 +35,7 @@ import { ResponsePortfolioAssetDto } from 'src/portfolio-assets/dto/response-por
 
 @Controller('portfolios')
 export class PortfoliosController {
-  constructor(private readonly portfoliosService: PortfoliosService) { }
+  constructor(private readonly portfoliosService: PortfoliosService) {}
 
   @ApiOperation({ summary: 'Create a new portfolio' })
   @ApiCreatedResponse({

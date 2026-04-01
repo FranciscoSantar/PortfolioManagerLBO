@@ -13,7 +13,8 @@ export class LoginUserDto {
   email: string;
 
   @ApiProperty({
-    description: 'Password of the user. Must be at least 8 characters long, contain at least 1 capital letter and 1 number',
+    description:
+      'Password of the user. Must be at least 8 characters long, contain at least 1 capital letter and 1 number',
     example: 'Password123',
     type: 'string',
     format: 'password',

@@ -31,7 +31,7 @@ export class PortfoliosService {
     @InjectRepository(Portfolio)
     private readonly portfolioRepository: Repository<Portfolio>,
     private readonly portfolioAssetService: PortfolioAssetsService,
-    private readonly logger: PinoLogger
+    private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(PortfoliosService.name);
   }
@@ -53,8 +53,8 @@ export class PortfoliosService {
         portfolioId: portfolio.id,
         name: portfolio.name,
         baseCoin: portfolio.baseCoin,
-        userId
-      })
+        userId,
+      });
 
       return {
         id: portfolio.id,
@@ -63,13 +63,12 @@ export class PortfoliosService {
         description: portfolio.description,
       };
     } catch (error) {
-
       this.logger.error('Error creating portfolio', {
         name: createPortfolioDto.name,
         baseCoin: createPortfolioDto.baseCoin,
         userId,
-        error
-      })
+        error,
+      });
 
       handlePostgresError(error);
     }
@@ -79,7 +78,6 @@ export class PortfoliosService {
     userId: string,
     paginationParams: PagintionPortfolioDto,
   ): Promise<ShortResponsePortfolioDto> {
-
     try {
       const { pageSize = 10, pageNumber = 0 } = paginationParams;
       const [portfolios, totalPortfolios] =
@@ -98,7 +96,9 @@ export class PortfoliosService {
       const portfoliosData: ShortPortfolioDto[] = await Promise.all(
         portfolios.map(async (portfolio) => {
           const portfolioSummary =
-            await this.portfolioAssetService.getSummaryOfPortfolio(portfolio.id);
+            await this.portfolioAssetService.getSummaryOfPortfolio(
+              portfolio.id,
+            );
           return {
             id: portfolio.id,
             name: portfolio.name,
@@ -114,8 +114,8 @@ export class PortfoliosService {
     } catch (error) {
       this.logger.error('Error fetching portfolios', {
         userId,
-        error
-      })
+        error,
+      });
 
       handlePostgresError(error);
     }
@@ -135,8 +135,8 @@ export class PortfoliosService {
       this.logger.error('Error fetching portfolio data', {
         portfolioId: id,
         userId,
-        error
-      })
+        error,
+      });
       handlePostgresError(error);
     }
   }
@@ -155,8 +155,8 @@ export class PortfoliosService {
         portfolioId: updatedPortfolio.id,
         name: updatedPortfolio.name,
         baseCoin: updatedPortfolio.baseCoin,
-        userId
-      })
+        userId,
+      });
 
       return {
         id: updatedPortfolio.id,
@@ -168,8 +168,8 @@ export class PortfoliosService {
       this.logger.error('Error updating portfolio', {
         portfolioId: id,
         userId,
-        error
-      })
+        error,
+      });
       handlePostgresError(error);
     }
   }
@@ -192,16 +192,16 @@ export class PortfoliosService {
 
       this.logger.info('Portfolio deleted successfully', {
         portfolioId: id,
-        userId
-      })
+        userId,
+      });
 
       return true;
     } catch (error) {
       this.logger.error('Error deleting portfolio', {
         portfolioId: id,
         userId,
-        error
-      })
+        error,
+      });
 
       handlePostgresError(error);
     }
@@ -224,8 +224,8 @@ export class PortfoliosService {
       if (!portfolio) {
         this.logger.warn('Portfolio not found', {
           portfolioId: id,
-          userId
-        })
+          userId,
+        });
         throw new NotFoundException(`Portfolio with ID = ${id} was not found`);
       }
       return portfolio;
@@ -233,8 +233,8 @@ export class PortfoliosService {
       this.logger.error('Error fetching portfolio', {
         portfolioId: id,
         userId,
-        error
-      })
+        error,
+      });
       handlePostgresError(error);
     }
   }

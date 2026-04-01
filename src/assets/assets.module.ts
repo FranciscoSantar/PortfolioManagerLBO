@@ -8,9 +8,13 @@ import { AssetsController } from './assets.controller';
 import { YahooFinanceModule } from 'src/yahoo-finance/yahoo-finance.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Asset]), AssetTypesModule, YahooFinanceModule],
+  imports: [
+    TypeOrmModule.forFeature([Asset]),
+    AssetTypesModule,
+    YahooFinanceModule,
+  ],
   controllers: [AssetsController],
   providers: [AssetsService],
-  exports: [AssetsService]
+  exports: [AssetsService],
 })
-export class AssetsModule { }
+export class AssetsModule {}

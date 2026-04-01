@@ -20,9 +20,9 @@ export class UsersService {
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly logger: PinoLogger
+    private readonly logger: PinoLogger,
   ) {
-    this.logger.setContext(UsersService.name)
+    this.logger.setContext(UsersService.name);
   }
 
   async create(createUserDto: CreateUserDto): Promise<CreatedUserResponseDto> {
@@ -34,14 +34,14 @@ export class UsersService {
         id,
         firstName,
         lastName,
-        email
+        email,
       };
     } catch (error) {
       this.logger.error('Error creating user', {
         email: createUserDto.email,
-        error
-      })
-      handlePostgresError(error)
+        error,
+      });
+      handlePostgresError(error);
     }
   }
 
@@ -50,21 +50,21 @@ export class UsersService {
       const user = await this.userRepository.findOne({
         where: {
           id: id,
-          deletedAt: IsNull()
-        }
-      })
+          deletedAt: IsNull(),
+        },
+      });
 
       if (!user) {
-        throw new NotFoundException(`User not found`)
+        throw new NotFoundException(`User not found`);
       }
 
       return user;
     } catch (error) {
       this.logger.error('Error fetching user by ID', {
         userId: id,
-        error
-      })
-      handlePostgresError(error)
+        error,
+      });
+      handlePostgresError(error);
     }
   }
 
@@ -73,69 +73,69 @@ export class UsersService {
       const user = await this.userRepository.findOne({
         where: {
           email,
-          deletedAt: IsNull()
+          deletedAt: IsNull(),
         },
         select: {
           id: true,
           email: true,
           password: true,
-        }
-      })
+        },
+      });
 
       if (!user) {
-        throw new NotFoundException(`User not found`)
+        throw new NotFoundException(`User not found`);
       }
 
       return user;
     } catch (error) {
       this.logger.error('Error fetching user by email for login', {
         email,
-        error
-      })
-      handlePostgresError(error)
+        error,
+      });
+      handlePostgresError(error);
     }
   }
 
   async remove(id: string): Promise<boolean> {
     try {
-      const user = await this.findById(id)
+      const user = await this.findById(id);
 
       await this.dataSource.transaction(async (manager) => {
         await manager.softDelete(Transaction, {
           portfolio: {
             user: {
-              id
-            }
-          }
-        })
+              id,
+            },
+          },
+        });
 
         await manager.softDelete(PortfolioAsset, {
           portfolio: {
             user: {
-              id
-            }
-          }
-        })
+              id,
+            },
+          },
+        });
 
         await manager.softDelete(Portfolio, {
-          user
+          user,
         });
 
         await manager.softDelete(User, {
-          id
+          id,
         });
       });
       this.logger.info('User deleted successfully', {
         userId: id,
-        email: user.email
-      })
-      return true
+        email: user.email,
+      });
+      return true;
     } catch (error) {
       this.logger.error('Error during user deletion', {
         userId: id,
-        error
-      })
-      handlePostgresError(error)
+        error,
+      });
+      handlePostgresError(error);
     }
   }
 }

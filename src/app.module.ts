@@ -5,7 +5,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
 import { LoggerModule } from 'nestjs-pino';
 
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -38,8 +37,8 @@ import configuration from '../config/configuration';
             transport: isProd
               ? undefined
               : {
-                target: 'pino-pretty',
-              },
+                  target: 'pino-pretty',
+                },
             autoLogging: false,
             customProps: (req, res) => ({
               http: {
@@ -52,7 +51,7 @@ import configuration from '../config/configuration';
               req: () => undefined,
               res: () => undefined,
             },
-          }
+          },
         };
       },
     }),
@@ -76,12 +75,10 @@ import configuration from '../config/configuration';
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
         const cacheHost = config.get('cache.host');
-        const cachePort = config.get('cache.port')
+        const cachePort = config.get('cache.port');
         return {
-          stores: [
-            new KeyvRedis(`redis://${cacheHost}:${cachePort}`),
-          ],
-        }
+          stores: [new KeyvRedis(`redis://${cacheHost}:${cachePort}`)],
+        };
       },
     }),
     UsersModule,
@@ -98,4 +95,4 @@ import configuration from '../config/configuration';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

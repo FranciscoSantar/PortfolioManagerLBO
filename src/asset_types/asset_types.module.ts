@@ -7,6 +7,6 @@ import { AssetType } from './entities/asset_type.entity';
   imports: [TypeOrmModule.forFeature([AssetType])],
   controllers: [],
   providers: [AssetTypesService],
-  exports: [AssetTypesService]
+  exports: [AssetTypesService],
 })
-export class AssetTypesModule { }
+export class AssetTypesModule {}

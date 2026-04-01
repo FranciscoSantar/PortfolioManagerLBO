@@ -13,18 +13,20 @@ async function bootstrap() {
 
   app.useLogger(app.get(Logger));
 
-  app.setGlobalPrefix('/v1/api')
+  app.setGlobalPrefix('/v1/api');
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
-      transform: true
+      transform: true,
     }),
   );
 
   const config = new DocumentBuilder()
     .setTitle('LBO Portfolio Manager')
-    .setDescription('The API for LBO Portfolio Manager allows users to manage their investment portfolios, track assets, and generate reports.')
+    .setDescription(
+      'The API for LBO Portfolio Manager allows users to manage their investment portfolios, track assets, and generate reports.',
+    )
     .setVersion('1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
@@ -34,7 +36,6 @@ async function bootstrap() {
       operationsSorter: 'alpha',
     },
   });
-
 
   await app.listen(process.env.APP_PORT ?? 3000);
 }

@@ -20,12 +20,12 @@ export class Asset {
   id: string;
 
   @Column({
-    unique: true
+    unique: true,
   })
   ticker: string;
 
   @Column({
-    unique: true
+    unique: true,
   })
   name: string;
 

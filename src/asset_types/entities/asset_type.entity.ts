@@ -1,20 +1,19 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import { Asset } from "src/assets/entities/asset.entity";
+import { Asset } from 'src/assets/entities/asset.entity';
 
 export enum AssetTypeEnum {
   STOCK = 'STOCK',
-  CRYPTO = 'CRYPTO'
+  CRYPTO = 'CRYPTO',
 }
 
 @Entity()
 export class AssetType {
-
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
-    unique: true
+    unique: true,
   })
   type: string;
 

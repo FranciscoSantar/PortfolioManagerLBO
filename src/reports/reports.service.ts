@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx';
 import { PinoLogger } from 'nestjs-pino';
 
 import { Injectable } from '@nestjs/common';
@@ -11,68 +11,92 @@ export class ReportsService {
   constructor(
     private readonly portfolioService: PortfoliosService,
     private readonly transactionService: TransactionsService,
-    private readonly logger: PinoLogger
+    private readonly logger: PinoLogger,
   ) {
-    this.logger.setContext(ReportsService.name)
+    this.logger.setContext(ReportsService.name);
   }
 
   async generate(portfolioId: string, userId: string): Promise<Buffer> {
     try {
-      const portfolioData = await this.portfolioService.getPortfolioData(portfolioId, userId)
+      const portfolioData = await this.portfolioService.getPortfolioData(
+        portfolioId,
+        userId,
+      );
 
-      const workbook = XLSX.utils.book_new()
+      const workbook = XLSX.utils.book_new();
 
-      const summaryDataForSheet = [{
-        'Cantidad de Activos': portfolioData.totalAssets,
-        'Valor Total del Portafolio': portfolioData.totalValue,
-        'Total Invertido del Portafolio': portfolioData.totalInvested,
-        'ROI (%)': portfolioData.totalRoi,
-      }]
-      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(summaryDataForSheet), 'Resumen')
-
+      const summaryDataForSheet = [
+        {
+          'Cantidad de Activos': portfolioData.totalAssets,
+          'Valor Total del Portafolio': portfolioData.totalValue,
+          'Total Invertido del Portafolio': portfolioData.totalInvested,
+          'ROI (%)': portfolioData.totalRoi,
+        },
+      ];
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(summaryDataForSheet),
+        'Resumen',
+      );
 
       const assetsDataForSheet = portfolioData.assets.map((asset) => ({
-        'Ticker': asset.info.ticker,
-        'Nombre': asset.info.name,
-        'Tipo': asset.info.type,
-        'Cantidad': asset.quantity,
+        Ticker: asset.info.ticker,
+        Nombre: asset.info.name,
+        Tipo: asset.info.type,
+        Cantidad: asset.quantity,
         'Precio Actual': asset.unitPrice,
         'Precio Promedio de compra': asset.avgBuyPrice,
         'Valor Total': asset.totalValue,
         'ROI (%)': asset.roi,
-      }))
-      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(assetsDataForSheet), 'Activos')
+      }));
+      XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.json_to_sheet(assetsDataForSheet),
+        'Activos',
+      );
 
       for (const assetData of portfolioData.assets) {
-        const assetId = assetData.info.id
-        const assetTransactions = await this.transactionService.findAllTransactionsOfPortfolioAssetEnties(portfolioId, assetId, userId)
+        const assetId = assetData.info.id;
+        const assetTransactions =
+          await this.transactionService.findAllTransactionsOfPortfolioAssetEnties(
+            portfolioId,
+            assetId,
+            userId,
+          );
 
-        const transactionsDataForSheet = assetTransactions.transactions.map((transaction) => ({
-          'Fecha': transaction.createdAt,
-          'Operación': transaction.operation,
-          'Cantidad': transaction.quantity,
-          'Precio Unitario': transaction.unitPrice,
-          'Comisión': transaction.commissionAmount,
-        }))
-        const sheetName = `${assetData.info.ticker}`
-        XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(transactionsDataForSheet), sheetName)
+        const transactionsDataForSheet = assetTransactions.transactions.map(
+          (transaction) => ({
+            Fecha: transaction.createdAt,
+            Operación: transaction.operation,
+            Cantidad: transaction.quantity,
+            'Precio Unitario': transaction.unitPrice,
+            Comisión: transaction.commissionAmount,
+          }),
+        );
+        const sheetName = `${assetData.info.ticker}`;
+        XLSX.utils.book_append_sheet(
+          workbook,
+          XLSX.utils.json_to_sheet(transactionsDataForSheet),
+          sheetName,
+        );
       }
-
 
       this.logger.info('Report generated successfully', {
         portfolioId,
         userId,
-      })
+      });
 
-      return Buffer.from(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }))
+      return Buffer.from(
+        XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }),
+      );
     } catch (error) {
       this.logger.error('Error generating report', {
         portfolioId,
         userId,
-        error
-      })
+        error,
+      });
 
-      handlePostgresError(error)
+      handlePostgresError(error);
     }
   }
 }

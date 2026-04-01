@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 
 export function handlePostgresError(error: any): never {
-
-  if (error instanceof HttpException) { // if error is a Nest error, re-throw
+  if (error instanceof HttpException) {
+    // if error is a Nest error, re-throw
     throw error;
   }
 

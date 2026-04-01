@@ -6,6 +6,6 @@ import { YahooFinanceModule } from 'src/yahoo-finance/yahoo-finance.module';
 
 @Module({
   imports: [AssetTypesModule, AssetsModule, YahooFinanceModule],
-  providers: [SeedService]
+  providers: [SeedService],
 })
-export class SeedModule { }
+export class SeedModule {}

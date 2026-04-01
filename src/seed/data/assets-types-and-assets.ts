@@ -1,4 +1,4 @@
-export const ASSET_TYPES = ['STOCK', 'CRYPTO']
+export const ASSET_TYPES = ['STOCK', 'CRYPTO'];
 
 export const STOCKS_TICKERS = [
   'AAPL',
@@ -50,8 +50,8 @@ export const STOCKS_TICKERS = [
   'IBM',
   'TMUS',
   'SPY',
-  'QQQ'
-]
+  'QQQ',
+];
 
 export const CRYPTO_SYMBOLS = [
   'BTC-USD',
@@ -69,4 +69,4 @@ export const CRYPTO_SYMBOLS = [
   'SUI-USD',
   'AVAX-USD',
   'LTC-USD',
-]
+];

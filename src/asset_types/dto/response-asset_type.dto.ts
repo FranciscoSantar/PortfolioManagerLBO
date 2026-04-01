@@ -1,4 +1,4 @@
 export class ResponseAssetTypeDto {
   id: string;
-  type: string
+  type: string;
 }

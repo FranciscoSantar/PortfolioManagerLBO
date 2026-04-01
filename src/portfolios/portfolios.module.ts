@@ -10,6 +10,6 @@ import { PortfolioAssetsModule } from '../portfolio-assets/portfolio-assets.modu
   imports: [TypeOrmModule.forFeature([Portfolio]), PortfolioAssetsModule],
   controllers: [PortfoliosController],
   providers: [PortfoliosService],
-  exports: [PortfoliosService]
+  exports: [PortfoliosService],
 })
-export class PortfoliosModule { }
+export class PortfoliosModule {}

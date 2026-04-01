@@ -7,6 +7,6 @@ import { PortfoliosModule } from 'src/portfolios/portfolios.module';
 @Module({
   controllers: [ReportsController],
   providers: [ReportsService],
-  imports: [TransactionsModule, PortfoliosModule]
+  imports: [TransactionsModule, PortfoliosModule],
 })
-export class ReportsModule { }
+export class ReportsModule {}

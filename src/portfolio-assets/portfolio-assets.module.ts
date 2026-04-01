@@ -9,6 +9,6 @@ import { PortfolioAssetController } from './portfolio-assets.controller';
   imports: [TypeOrmModule.forFeature([PortfolioAsset]), YahooFinanceModule],
   controllers: [PortfolioAssetController],
   providers: [PortfolioAssetsService],
-  exports: [PortfolioAssetsService]
+  exports: [PortfolioAssetsService],
 })
-export class PortfolioAssetsModule { }
+export class PortfolioAssetsModule {}

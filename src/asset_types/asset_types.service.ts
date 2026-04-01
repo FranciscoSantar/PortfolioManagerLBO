@@ -14,58 +14,60 @@ export class AssetTypesService {
   constructor(
     @InjectRepository(AssetType)
     private readonly assetTypeRepository: Repository<AssetType>,
-    private readonly logger: PinoLogger
+    private readonly logger: PinoLogger,
   ) {
-    this.logger.setContext(AssetTypesService.name)
+    this.logger.setContext(AssetTypesService.name);
   }
 
   async saveForSeeding(assetTypes: string[]) {
-    const isPopulated = await this.checkIfExists()
+    const isPopulated = await this.checkIfExists();
     if (isPopulated) {
-      this.logger.warn('Attempt to seed Asset Types table when it is already populated')
-      throw new Error('Asset Type table is already populated.')
+      this.logger.warn(
+        'Attempt to seed Asset Types table when it is already populated',
+      );
+      throw new Error('Asset Type table is already populated.');
     }
 
-    let assetTypesDtos: InsertAssetTypeDto[]
+    let assetTypesDtos: InsertAssetTypeDto[];
     assetTypesDtos = assetTypes.map((type) => ({
-      type
-    }))
+      type,
+    }));
 
     const assetTypesEntities = this.assetTypeRepository.create(assetTypesDtos);
-    await this.assetTypeRepository.save(assetTypesEntities)
+    await this.assetTypeRepository.save(assetTypesEntities);
 
     this.logger.info('Asset types seeded successfully', {
       count: assetTypesEntities.length,
-      assetTypes: assetTypesEntities.map((assetType) => assetType.type)
-    })
+      assetTypes: assetTypesEntities.map((assetType) => assetType.type),
+    });
   }
 
   async checkIfExists() {
     return await this.assetTypeRepository.exists({
       where: {
-        type: In(ASSET_TYPES)
-      }
-    })
+        type: In(ASSET_TYPES),
+      },
+    });
   }
 
   async getByType(type: string) {
     try {
       const assetType = this.assetTypeRepository.findOne({
         where: {
-          type
-        }
-      })
+          type,
+        },
+      });
 
       if (!assetType) {
-        throw new NotFoundException(`Asset type ${type} was not found.`)
+        throw new NotFoundException(`Asset type ${type} was not found.`);
       }
-      return assetType
+      return assetType;
     } catch (error) {
       this.logger.error('Error fetching asset type by type', {
         type,
-        error
-      })
-      handlePostgresError(error)
+        error,
+      });
+      handlePostgresError(error);
     }
   }
 }

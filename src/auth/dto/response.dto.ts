@@ -1,10 +1,10 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { CreatedUserResponseDto } from "src/users/dto/response-user.dto";
+import { ApiProperty } from '@nestjs/swagger';
+import { CreatedUserResponseDto } from 'src/users/dto/response-user.dto';
 
 export class LoginResponseDto {
   @ApiProperty({
     description: 'JWT token for authentication',
-    example: 'eyJhbGciOiJ...'
+    example: 'eyJhbGciOiJ...',
   })
   token: string;
 }
@@ -15,7 +15,7 @@ export class RegisterResponseDto {
 
   @ApiProperty({
     description: 'JWT token for authentication',
-    example: 'eyJhbGciOiJ...'
+    example: 'eyJhbGciOiJ...',
   })
   token: string;
 }

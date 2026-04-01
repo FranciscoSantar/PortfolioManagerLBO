@@ -4,6 +4,6 @@ import { YahooFinanceService } from './yahoo-finance.service';
 @Module({
   providers: [YahooFinanceService],
   controllers: [],
-  exports: [YahooFinanceService]
+  exports: [YahooFinanceService],
 })
-export class YahooFinanceModule { }
+export class YahooFinanceModule {}

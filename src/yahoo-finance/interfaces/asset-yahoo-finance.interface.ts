@@ -5,4 +5,3 @@ export interface ShortAssetYahooFinance {
   marketState: string;
   exchange: string;
 }
-

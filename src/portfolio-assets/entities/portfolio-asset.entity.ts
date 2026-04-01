@@ -19,14 +19,13 @@ import { Portfolio } from '../../portfolios/entities/portfolio.entity';
   where: 'deleted_at IS NULL',
 })
 export class PortfolioAsset {
-
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
     type: 'decimal',
     precision: 12,
-    scale: 6
+    scale: 6,
   })
   quantity: string;
 
@@ -34,7 +33,7 @@ export class PortfolioAsset {
     name: 'avg_buy_price',
     type: 'decimal',
     precision: 12,
-    scale: 4
+    scale: 4,
   })
   averageBuyPrice: string;
 
@@ -55,4 +54,3 @@ export class PortfolioAsset {
   @JoinColumn({ name: 'asset_id' })
   asset: Asset;
 }
-
