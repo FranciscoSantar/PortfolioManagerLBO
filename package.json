@@ -20,7 +20,10 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node -r tsconfig-paths/register src/seed/run-seed.ts",
-    "seed:prod": "node dist/seed/run-seed.js"
+    "seed:prod": "node dist/seed/run-seed.js",
+    "migration:generate": "yarn build && typeorm migration:generate -d dist/data-source.js",
+    "migration:run": "typeorm migration:run -d dist/data-source.js",
+    "migration:revert": "typeorm migration:revert -d dist/data-source.js"
   },
   "dependencies": {
     "@keyv/redis": "^5.1.6",

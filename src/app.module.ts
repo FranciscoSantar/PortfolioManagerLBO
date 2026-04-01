@@ -69,7 +69,7 @@ import configuration from './config/configuration';
         username: config.get('database.username'),
         password: config.get('database.password'),
         database: config.get('database.name'),
-        synchronize: true,
+        synchronize: false,
         autoLoadEntities: true,
       }),
     }),
