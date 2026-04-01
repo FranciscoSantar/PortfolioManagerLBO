@@ -14,5 +14,6 @@
 
 The following optional tasks were not completed due to time constraints:
 
-- **Unit and integration tests**
+- **Unit and integration tests**: For unit testing, I would choose `Jest`, since I have experience with it.
+
 - **Deployment to a platform**

@@ -14,5 +14,6 @@
 
 Las siguientes tareas opcionales no fueron completadas por falta de tiempo:
 
-- **Tests unitarios y de integración**
+- **Tests unitarios y de integración**: Para el desarrollo de tests unitarios, elegiria `Jest`, ya que cuento con experiencia previa.
+
 - **Deployment en una plataforma**
