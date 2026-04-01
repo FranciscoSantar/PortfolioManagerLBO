@@ -1,98 +1,165 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# LBO Portfolio Manager
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Summary
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+REST API that allows users to manage investment portfolios by creating portfolios, recording BUY/SELL transactions, tracking asset positions, and generating excel documents (`.xlsx`) with portfolios' performance reports. Asset prices are fetched in real time from Yahoo Finance and cached in Redis to avoid redundant requests. 
 
-## Description
+The API is documented with Swagger and available at `http://localhost:8000/docs` once the server is running.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Documentation
 
-## Project setup
+- [Database](docs/database.md)
+- Future Improvements: [EN](docs/future-improvements.md) | [ES](docs/future-improvements-es.md)
+- Technical Decisions: [EN](docs/technical-decisions.md) | [ES](docs/technical-decisions-es.md)
 
-```bash
-$ yarn install
-```
+---
 
-## Compile and run the project
+## Technologies Used
 
-```bash
-# development
-$ yarn run start
+| Layer | Technology |
+|---|---|
+| Framework | [NestJS](https://nestjs.com/) (Node.js / TypeScript) |
+| Database | PostgreSQL 15 |
+| Cache | Redis 7 |
+| Auth | JWT + bcrypt |
+| Market Data | yahoo-finance2 |
+| Logging | Pino |
+| Docs | Swagger / OpenAPI |
+| Containerization | Docker + Docker Compose |
 
-# watch mode
-$ yarn run start:dev
+---
 
-# production mode
-$ yarn run start:prod
-```
+## Requirements
 
-## Run tests
+### Without Docker
 
-```bash
-# unit tests
-$ yarn run test
+- [Node.js](https://nodejs.org/) >= 22
+- [PostgreSQL](https://www.postgresql.org/) >= 15 (running locally)
+- [Redis](https://redis.io/) >= 7 (running locally)
 
-# e2e tests
-$ yarn run test:e2e
+### With Docker
 
-# test coverage
-$ yarn run test:cov
-```
+- [Docker](https://www.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/install)
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Running the Application
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Step 1 — Clone the repository
 
 ```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
+git clone https://github.com/FranciscoSantar/PortfolioManagerLBO.git
+
+cd PortfolioManagerLBO
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Step 2 — Set up environment variables
 
-## Resources
+```bash
+cp .env.example .env
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+Open the `.env` file and fill in the required values (database credentials, JWT secret, etc.).
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+> **Note:** when running with Docker, set `DB_HOST=postgres` and `CACHE_HOST=redis` to match the service names defined in `docker-compose.yml`. Running locally should use `localhost` for both.
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Without Docker
 
-## Stay in touch
+#### Step 3 — Install dependencies
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+yarn install
+```
 
-## License
+#### Step 4 — Start the server
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+# Development mode (watch)
+yarn start:dev
+
+# Production mode
+yarn build && yarn start:prod
+```
+
+---
+
+### With Docker
+
+#### Step 3 — Build and start all services
+
+```bash
+docker compose up --build -d
+```
+
+---
+
+## Supported Assets
+
+All assets and asset types supported by the API are defined in a single configuration file: [src/seed/data/assets-types-and-assets.ts](src/seed/data/assets-types-and-assets.ts).
+
+The file contains:
+- **Asset types** — `STOCK`, `CRYPTO` (e.g. adding `BOND` in the future only requires adding it here)
+- **50 stocks** 
+- **15 cryptocurrencies**
+
+This is the single source of truth for supported assets. To add a new asset type (e.g. bonds) or new tickers in the future, only this file needs to be updated before re-running the seed. 
+
+Make sure that new assets exist in Yahoo Finance first.
+
+---
+
+## Getting Started
+
+### 1. Seed the database
+
+Run the seed script to populate asset types and all supported assets:
+
+```bash
+yarn seed
+```
+
+> Note: when running with Docker, exec into the container first:
+> ```bash
+> docker exec -it portfolioapi yarn seed:prod
+> ```
+
+### 2. Create a user and get a token
+
+```bash
+curl -X POST http://localhost:8000/v1/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "password": "Password123"
+  }'
+```
+
+The response will include a `token`. Use it as a Bearer token in subsequent requests:
+
+```bash
+curl http://localhost:8000/v1/api/portfolios \
+  -H "Authorization: Bearer <your_token>"
+```
+
+### 4. Explore the API
+
+Interactive Swagger docs are available at:
+
+```
+http://localhost:8000/docs
+```
+
+---
+
+## Key Concepts
+
+### Adding assets to a portfolio
+
+Assets are not added directly to a portfolio. Instead, posting a **BUY** transaction for a given asset is what creates the position in the portfolio. The portfolio asset (position) is created automatically when the first BUY transaction is recorded.
+
+Similarly, a **SELL** transaction reduces the position. If the full quantity is sold, the position is removed from the portfolio.
