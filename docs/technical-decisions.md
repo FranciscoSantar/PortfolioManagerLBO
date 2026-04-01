@@ -24,3 +24,5 @@
   - Portfolio summary.
   - Summary of each asset in the portfolio.
   - One sheet per asset; all transactions for that asset are listed there.
+
+- I decided to implement a multi-stage build in the `Dockerfile`, as the final image is cleaner since it only contains the `dist/` folder, without including development dependencies.

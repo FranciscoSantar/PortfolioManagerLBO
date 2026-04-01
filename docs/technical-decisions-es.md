@@ -24,3 +24,5 @@
   - Resumen del portafolio.
   - Resumen de cada activo del portafolio.
   - Una hoja por activo; aquí se listan todas las transacciones del mismo.
+
+- Decidí implementar un multi-stage build en el `Dockerfile`, ya que la imagen final resulta más limpia al contener únicamente la carpeta `dist/`, sin incluir las dependencias de desarrollo.
