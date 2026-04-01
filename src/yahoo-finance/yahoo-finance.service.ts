@@ -77,7 +77,7 @@ export class YahooFinanceService {
     return yahooFinanceAssetPrice;
   }
 
-  async getAllPrices(assetsList: string[]): Promise<YahooAssetPriceDto[]> {
+  async updateAllPrices(assetsList: string[]): Promise<YahooAssetPriceDto[]> {
     let assetsPrices: YahooAssetPriceDto[] = []
     let assetWithoutPrice: string[] = []
 

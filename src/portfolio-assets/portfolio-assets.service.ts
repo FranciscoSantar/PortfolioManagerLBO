@@ -68,7 +68,7 @@ export class PortfolioAssetsService {
       const portfolioAssetsTickers = portfolioAssets.map((portfolioAsset) => portfolioAsset.asset.ticker)
 
       //Update prices in cache
-      await this.yahooFinanceService.getAllPrices(portfolioAssetsTickers)
+      await this.yahooFinanceService.updateAllPrices(portfolioAssetsTickers)
 
 
       const portfolioAssetDataWithCurrentValueDto: AssetDataWithCurrentValueDto[] = await Promise.all(portfolioAssets.map(async (portfolioAsset: PortfolioAsset) => {
@@ -143,7 +143,7 @@ export class PortfolioAssetsService {
       const portfolioAssetsTickers = portfolioAssets.map((portfolioAsset) => portfolioAsset.asset.ticker)
 
       //Update prices in cache
-      await this.yahooFinanceService.getAllPrices(portfolioAssetsTickers)
+      await this.yahooFinanceService.updateAllPrices(portfolioAssetsTickers)
 
       const portfolioTotalValueAndTotalAssets = await this.getPortfolioTotalAssetsAndTotalValue(portfolioAssets)
       return portfolioTotalValueAndTotalAssets
