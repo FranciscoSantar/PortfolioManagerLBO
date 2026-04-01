@@ -18,6 +18,7 @@ export class ReportsService {
 
   async generate(portfolioId: string, userId: string): Promise<Buffer> {
     try {
+      await this.portfolioService.findOne(portfolioId, userId);
       const portfolioData = await this.portfolioService.getPortfolioData(
         portfolioId,
         userId,
