@@ -39,6 +39,9 @@ export class AssetsService {
       const asset = await this.assetRepository.findOne({
         where: {
           id
+        },
+        relations: {
+          assetType: true
         }
       })
 
