@@ -1,4 +1,5 @@
 import { Repository } from 'typeorm';
+import { PinoLogger } from 'nestjs-pino';
 
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,8 +18,11 @@ export class AssetsService {
     @InjectRepository(Asset)
     private readonly assetRepository: Repository<Asset>,
     private readonly assetTypeService: AssetTypesService,
-    private readonly yahooFinanceService: YahooFinanceService
-  ) { }
+    private readonly yahooFinanceService: YahooFinanceService,
+    private readonly logger: PinoLogger
+  ) {
+    this.logger.setContext(AssetsService.name)
+  }
 
   async findAll(): Promise<ShortResponseAssetDto[]> {
     try {
@@ -30,6 +34,9 @@ export class AssetsService {
       const assetsShortResponseDto = assets.map((asset) => this.toResponseDto(asset))
       return assetsShortResponseDto;
     } catch (error) {
+      this.logger.error('Error fetching all assets', {
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -50,6 +57,10 @@ export class AssetsService {
       }
       return asset;
     } catch (error) {
+      this.logger.error(`Error fetching asset`, {
+        id,
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -58,7 +69,9 @@ export class AssetsService {
     const stocksAssetType = await this.assetTypeService.getByType(assetType)
 
     if (!stocksAssetType) {
-      console.log(`Asset type ${assetType} was not found.`);
+      this.logger.error('Asset type for seeding assets was not found', {
+        assetType
+      })
       throw new Error(`Asset type ${assetType} was not found.`)
     }
 
@@ -69,7 +82,10 @@ export class AssetsService {
       }))
 
     await this.assetRepository.save(assetsEntities)
-
+    this.logger.info('Assets seeded successfully during seeding process', {
+      count: assetsEntities.length,
+      assetType: assetType
+    })
   }
 
   async updatePrice(ticker: string): Promise<YahooAssetPriceDto> {
@@ -80,15 +96,30 @@ export class AssetsService {
         }
       })
       if (!asset) {
+        this.logger.warn(`Attempt to update price for non-existing asset with ticker: ${ticker}`, {
+          ticker
+        })
         throw new NotFoundException(`Asset with ticker: ${ticker} does not exist.`)
       }
 
       const updatePriceSuccess = await this.yahooFinanceService.updatePriceByTicker(ticker)
       if (!updatePriceSuccess) {
+        this.logger.error(`Error during the update of the price of: ${ticker}`, {
+          ticker
+        })
         throw new InternalServerErrorException(`Error during the update of the price of: ${ticker}`)
       }
+
+      this.logger.info(`Price updated successfully for asset with ticker: ${ticker}`, {
+        ticker,
+        price: updatePriceSuccess.price
+      })
       return updatePriceSuccess
     } catch (error) {
+      this.logger.error(`Error during the update of the price of: ${ticker}`, {
+        ticker,
+        error
+      })
       handlePostgresError(error)
     }
   }

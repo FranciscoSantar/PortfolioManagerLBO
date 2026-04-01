@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 
 import { AssetTypesService } from '../asset_types/asset_types.service';
 import { AssetsService } from '../assets/assets.service';
@@ -12,10 +13,15 @@ export class SeedService {
   constructor(
     private readonly assetTypesService: AssetTypesService,
     private readonly assetService: AssetsService,
-    private readonly yahooFinanceService: YahooFinanceService
-  ) { }
+    private readonly yahooFinanceService: YahooFinanceService,
+    private readonly logger: PinoLogger
+  ) {
+    this.logger.setContext(SeedService.name)
+  }
   async populateDB() {
     try {
+      this.logger.info('Starting database seeding process')
+
       await this.assetTypesService.saveForSeeding(ASSET_TYPES)
 
       // Start seeding stocks
@@ -25,7 +31,12 @@ export class SeedService {
       // Then, Cryptos
       const cryptosAssetsDtos = await this.yahooFinanceService.getDataForSeeding(CRYPTO_SYMBOLS)
       await this.assetService.saveForSeeding(cryptosAssetsDtos, 'CRYPTO')
+
+      this.logger.info('Database seeding completed successfully')
     } catch (error) {
+      this.logger.error('Error during database seeding', {
+        error
+      })
       handlePostgresError(error)
     }
   }

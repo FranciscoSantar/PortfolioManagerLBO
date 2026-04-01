@@ -1,4 +1,5 @@
 import { FindOptionsWhere, Repository } from 'typeorm';
+import { PinoLogger } from 'nestjs-pino';
 
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -22,8 +23,11 @@ export class PortfolioAssetsService {
 
     @InjectRepository(PortfolioAsset)
     private readonly portfolioAssetRepository: Repository<PortfolioAsset>,
-    private readonly yahooFinanceService: YahooFinanceService
-  ) { }
+    private readonly yahooFinanceService: YahooFinanceService,
+    private readonly logger: PinoLogger
+  ) {
+    this.logger.setContext(PortfolioAssetsService.name)
+  }
 
   async findOne(portfolioId: string, assetId: string): Promise<PortfolioAsset> {
     try {
@@ -43,6 +47,11 @@ export class PortfolioAssetsService {
 
       return portfolioAsset;
     } catch (error) {
+      this.logger.error('Error fetching portfolio asset', {
+        portfolioId,
+        assetId,
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -124,9 +133,18 @@ export class PortfolioAssetsService {
       };
 
       const orderedResponse = this.orderPortfolioAssets(response, queryDto)
+
+      this.logger.info('Portfolio assets info calculated successfully', {
+        portfolioId
+      })
+
       return orderedResponse
     }
     catch (error) {
+      this.logger.error('Error calculating portfolio assets info', {
+        portfolioId,
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -137,6 +155,9 @@ export class PortfolioAssetsService {
       const portfolioAssets = await this.getPortfolioAssetsByPortfolioId(portfolioId)
 
       if (portfolioAssets.length === 0) {
+        this.logger.debug(`No assets found for portfolio`, {
+          portfolioId,
+        })
         return { totalAssets: 0, totalValue: 0 }
       }
 
@@ -148,6 +169,11 @@ export class PortfolioAssetsService {
       const portfolioTotalValueAndTotalAssets = await this.getPortfolioTotalAssetsAndTotalValue(portfolioAssets)
       return portfolioTotalValueAndTotalAssets
     } catch (error) {
+      this.logger.error('Error calculating portfolio summary', {
+        portfolioId,
+        error
+      })
+
       handlePostgresError(error)
     }
   }
@@ -164,12 +190,32 @@ export class PortfolioAssetsService {
       })
 
       if (!portfolioAsset) {
+        this.logger.error(`Attempt to delete non-existing portfolio asset`, {
+          portfolioId,
+          assetId,
+          portfolioAssetId,
+          userId
+        })
+
         throw new NotFoundException(`Portfolio Asset with ID = ${portfolioAssetId} does not exist.`)
       }
 
       await this.portfolioAssetRepository.softRemove(portfolioAsset)
+      this.logger.info('Portfolio asset deleted successfully', {
+        portfolioAssetId,
+        portfolioId,
+        assetId,
+        userId
+      })
       return true
     } catch (error) {
+      this.logger.error('Error deleting portfolio asset', {
+        portfolioId,
+        assetId,
+        portfolioAssetId,
+        userId,
+        error
+      })
       handlePostgresError(error)
     }
   }

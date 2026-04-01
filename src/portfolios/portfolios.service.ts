@@ -1,4 +1,5 @@
 import { DataSource, Repository } from 'typeorm';
+import { PinoLogger } from 'nestjs-pino';
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
@@ -29,9 +30,11 @@ export class PortfoliosService {
 
     @InjectRepository(Portfolio)
     private readonly portfolioRepository: Repository<Portfolio>,
-
     private readonly portfolioAssetService: PortfolioAssetsService,
-  ) { }
+    private readonly logger: PinoLogger
+  ) {
+    this.logger.setContext(PortfoliosService.name);
+  }
 
   async create(
     createPortfolioDto: CreatePortfolioDto,
@@ -46,6 +49,13 @@ export class PortfoliosService {
       });
 
       await this.portfolioRepository.save(portfolio);
+      this.logger.info('Portfolio created successfully', {
+        portfolioId: portfolio.id,
+        name: portfolio.name,
+        baseCoin: portfolio.baseCoin,
+        userId
+      })
+
       return {
         id: portfolio.id,
         name: portfolio.name,
@@ -53,6 +63,14 @@ export class PortfoliosService {
         description: portfolio.description,
       };
     } catch (error) {
+
+      this.logger.error('Error creating portfolio', {
+        name: createPortfolioDto.name,
+        baseCoin: createPortfolioDto.baseCoin,
+        userId,
+        error
+      })
+
       handlePostgresError(error);
     }
   }
@@ -94,6 +112,11 @@ export class PortfoliosService {
         totalPages,
       };
     } catch (error) {
+      this.logger.error('Error fetching portfolios', {
+        userId,
+        error
+      })
+
       handlePostgresError(error);
     }
   }
@@ -109,6 +132,11 @@ export class PortfoliosService {
         await this.portfolioAssetService.getInfoOfPortfolioAssets(id, queryDto);
       return portfolioAssetsData;
     } catch (error) {
+      this.logger.error('Error fetching portfolio data', {
+        portfolioId: id,
+        userId,
+        error
+      })
       handlePostgresError(error);
     }
   }
@@ -122,6 +150,14 @@ export class PortfoliosService {
     try {
       this.portfolioRepository.merge(portfolio, updatePortfolioDto);
       const updatedPortfolio = await this.portfolioRepository.save(portfolio);
+
+      this.logger.info('Portfolio updated successfully', {
+        portfolioId: updatedPortfolio.id,
+        name: updatedPortfolio.name,
+        baseCoin: updatedPortfolio.baseCoin,
+        userId
+      })
+
       return {
         id: updatedPortfolio.id,
         name: updatedPortfolio.name,
@@ -129,6 +165,11 @@ export class PortfoliosService {
         description: updatedPortfolio.description,
       };
     } catch (error) {
+      this.logger.error('Error updating portfolio', {
+        portfolioId: id,
+        userId,
+        error
+      })
       handlePostgresError(error);
     }
   }
@@ -148,8 +189,20 @@ export class PortfoliosService {
 
         await manager.softDelete(Portfolio, { id });
       });
+
+      this.logger.info('Portfolio deleted successfully', {
+        portfolioId: id,
+        userId
+      })
+
       return true;
     } catch (error) {
+      this.logger.error('Error deleting portfolio', {
+        portfolioId: id,
+        userId,
+        error
+      })
+
       handlePostgresError(error);
     }
   }
@@ -169,10 +222,19 @@ export class PortfoliosService {
       });
 
       if (!portfolio) {
+        this.logger.warn('Portfolio not found', {
+          portfolioId: id,
+          userId
+        })
         throw new NotFoundException(`Portfolio with ID = ${id} was not found`);
       }
       return portfolio;
     } catch (error) {
+      this.logger.error('Error fetching portfolio', {
+        portfolioId: id,
+        userId,
+        error
+      })
       handlePostgresError(error);
     }
   }

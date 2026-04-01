@@ -1,6 +1,8 @@
+import { Repository, DataSource, FindOptionsWhere, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { PinoLogger } from 'nestjs-pino';
+
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, FindOptionsWhere, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 
 import { CommissionType, CreateTransactionDto } from './dto/create-transaction.dto';
 import { Transaction, TransactionType } from './entities/transaction.entity';
@@ -25,8 +27,11 @@ export class TransactionsService {
 
     private readonly portfolioService: PortfoliosService,
     private readonly assetService: AssetsService,
-    private readonly yahooFinanceService: YahooFinanceService
-  ) { }
+    private readonly yahooFinanceService: YahooFinanceService,
+    private readonly logger: PinoLogger
+  ) {
+    this.logger.setContext(TransactionsService.name)
+  }
 
   async create(createTransactionDto: CreateTransactionDto, portfolioId: string, userId: string): Promise<ShortResponseTransactionDto> {
     try {
@@ -63,8 +68,21 @@ export class TransactionsService {
 
         if (!portfolioAsset) {
           if (transactionData.operation === TransactionType.SELL) {
+            this.logger.warn('Attempt to sell an asset that does not exist in the portfolio', {
+              portfolioId,
+              assetId
+            })
+
             throw new BadRequestException(`Can not Sell because the asset ${asset.ticker} does not exist in the Portfolio`)
           }
+
+          this.logger.info('First time buying this asset, creating new portfolio asset', {
+            portfolioId,
+            assetId,
+            quantity: transactionData.quantity,
+            unitPrice: transactionData.unitPrice,
+            commissionAmount
+          })
 
           // First Buy, create PortfolioAsset
           const portfolioAsset = manager.create(PortfolioAsset, {
@@ -84,6 +102,13 @@ export class TransactionsService {
           const parsedPortfolioAssetAvgBuyPrice = Number(portfolioAsset.averageBuyPrice)
 
           if (transactionData.operation === TransactionType.SELL && parsedPortfolioAssetQuantity < parsedTransactionQuantity) {
+            this.logger.warn('Attempt to sell more quantity than the one available in the portfolio', {
+              portfolioId,
+              assetId,
+              attemptedSellQuantity: parsedTransactionQuantity,
+              availableQuantity: parsedPortfolioAssetQuantity
+            })
+
             throw new BadRequestException(`Insufficient balance to complete the sell order. You have ${parsedPortfolioAssetQuantity} of ${portfolioAsset.asset.ticker}`)
           }
 
@@ -104,6 +129,12 @@ export class TransactionsService {
 
           // Delete if the asset has been completely sold
           if (portfolioAssetNewQuantity === 0) {
+            this.logger.info('Asset completely sold, removing from portfolio', {
+              portfolioId,
+              assetId,
+              portfolioAssetId: portfolioAsset.id
+            })
+
             await manager.remove(portfolioAsset)
           } else {
             portfolioAsset.quantity = String(portfolioAssetNewQuantity)
@@ -127,6 +158,16 @@ export class TransactionsService {
         return transaction;
       });
 
+      this.logger.info('Transaction created successfully', {
+        transactionId: transaction.id,
+        portfolioId,
+        assetId,
+        quantity: transaction.quantity,
+        operation: transaction.operation,
+        unitPrice: transaction.unitPrice,
+        commission: transaction.commissionAmount
+      })
+
       return {
         id: transaction.id,
         quantity: Number(transaction.quantity),
@@ -135,6 +176,11 @@ export class TransactionsService {
         commission: Number(transaction.commissionAmount)
       }
     } catch (error) {
+      this.logger.error('Error creating transaction', {
+        portfolioId,
+        createTransactionDto,
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -185,6 +231,12 @@ export class TransactionsService {
         totalCommission: totalComissionsAmount
       };
     } catch (error) {
+      this.logger.error('Error fetching transactions of portfolio', {
+        portfolioId,
+        userId,
+        filterDto,
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -205,6 +257,11 @@ export class TransactionsService {
         throw new NotFoundException(`Transaction with id ${id} was not found.`);
       }
 
+      this.logger.info('Transaction fetched successfully', {
+        transactionId: transaction.id,
+        portfolioId
+      })
+
       return {
         id: transaction.id,
         quantity: Number(transaction.quantity),
@@ -213,6 +270,12 @@ export class TransactionsService {
         commission: Number(transaction.commissionAmount)
       };
     } catch (error) {
+      this.logger.error('Error fetching transaction in portfolio', {
+        id,
+        portfolioId,
+        userId,
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -261,6 +324,12 @@ export class TransactionsService {
         asset: assetResponseDto
       };
     } catch (error) {
+      this.logger.error('Error fetching transactions of portfolio asset', {
+        portfolioId,
+        assetId,
+        userId,
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -289,6 +358,12 @@ export class TransactionsService {
         asset
       };
     } catch (error) {
+      this.logger.error('Error fetching transactions of portfolio asset entities', {
+        portfolioId,
+        assetId,
+        userId,
+        error
+      })
       handlePostgresError(error)
     }
   }

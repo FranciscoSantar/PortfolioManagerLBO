@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx'
+import { PinoLogger } from 'nestjs-pino';
 
 import { Injectable } from '@nestjs/common';
 
@@ -9,8 +10,11 @@ import { handlePostgresError } from '../common/utils/postgres-error-handler';
 export class ReportsService {
   constructor(
     private readonly portfolioService: PortfoliosService,
-    private readonly transactionService: TransactionsService
-  ) { }
+    private readonly transactionService: TransactionsService,
+    private readonly logger: PinoLogger
+  ) {
+    this.logger.setContext(ReportsService.name)
+  }
 
   async generate(portfolioId: string, userId: string): Promise<Buffer> {
     try {
@@ -54,8 +58,20 @@ export class ReportsService {
         XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(transactionsDataForSheet), sheetName)
       }
 
+
+      this.logger.info('Report generated successfully', {
+        portfolioId,
+        userId,
+      })
+
       return Buffer.from(XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }))
     } catch (error) {
+      this.logger.error('Error generating report', {
+        portfolioId,
+        userId,
+        error
+      })
+
       handlePostgresError(error)
     }
   }

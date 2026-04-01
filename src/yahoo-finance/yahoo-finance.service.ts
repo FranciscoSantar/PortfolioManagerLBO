@@ -1,4 +1,5 @@
 import YahooFinance from "yahoo-finance2";
+import { PinoLogger } from "nestjs-pino";
 
 import { BadGatewayException, Inject, Injectable } from '@nestjs/common';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -16,8 +17,11 @@ export class YahooFinanceService {
   constructor(
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
+    private readonly logger: PinoLogger
 
-  ) { }
+  ) {
+    this.logger.setContext(YahooFinanceService.name)
+  }
   async getDataForSeeding(assetList: string[]): Promise<InsertAssetDto[]> {
     let yahooFinanceShortData: ShortAssetYahooFinance[] = []
 
@@ -39,12 +43,23 @@ export class YahooFinanceService {
     const assetPriceCacheKey = this.getPriceCachingKey(ticker)
     const cachedPrice = await this.cacheManager.get<YahooAssetPriceDto>(assetPriceCacheKey)
     if (cachedPrice) {
+      this.logger.debug(`Cache hit for asset with ticker: ${ticker}`, {
+        ticker,
+        price: cachedPrice.price
+      })
       return cachedPrice
     }
+
+    this.logger.debug(`Cache miss for asset with ticker: ${ticker}. Fetching price from provider.`, {
+      ticker
+    })
 
     const yahooFinanceData = await this.fetchYahooFinance([ticker])
 
     if (!yahooFinanceData || !yahooFinanceData[0].regularMarketPrice) {
+      this.logger.error(`Error fetching price from provider for asset ${ticker}. Price is missing`, {
+        ticker
+      })
       throw new BadGatewayException('Error fetching prices from the provider. Price is missing');
     }
 
@@ -80,6 +95,7 @@ export class YahooFinanceService {
   async updateAllPrices(assetsList: string[]): Promise<YahooAssetPriceDto[]> {
     let assetsPrices: YahooAssetPriceDto[] = []
     let assetWithoutPrice: string[] = []
+    let assetUpdated = assetsList.length
 
     for (const asset of assetsList) {
       const assetPriceCacheKey = this.getPriceCachingKey(asset)
@@ -96,7 +112,12 @@ export class YahooFinanceService {
 
       for (const yahooFinanceAsset of yahooFinanceData) {
         if (!yahooFinanceAsset.regularMarketPrice) {
-          console.warn(`Error fetching prices from the provider. Price of ${yahooFinanceAsset.symbol} is missing`)
+          assetUpdated--;
+
+          this.logger.warn(`Error fetching prices from the provider. Price of ${yahooFinanceAsset.symbol} is missing`, {
+            symbol: yahooFinanceAsset.symbol
+          })
+
           continue;
         }
         const yahooFinanceAssetPrice: YahooAssetPriceDto = {
@@ -111,6 +132,10 @@ export class YahooFinanceService {
       }
     }
 
+    this.logger.info('Asset prices updated successfully', {
+      totalAssets: assetsList.length,
+      assetsUpdated: assetUpdated,
+    })
     return assetsPrices
   }
 
@@ -124,11 +149,18 @@ export class YahooFinanceService {
         const data = await this.yf.quote(assetsBatch);
         yahooFinanceData.push(...data);
       }
-    } catch {
+    } catch (error) {
+      this.logger.error('Error fetching prices from the provider', {
+        assetList,
+        error
+      })
       throw new BadGatewayException('Error fetching prices from the provider');
     }
 
     if (yahooFinanceData.length === 0) {
+      this.logger.error('Error fetching prices from the provider. No data returned', {
+        assetList
+      })
       throw new BadGatewayException('Error fetching prices from the provider');
     }
 

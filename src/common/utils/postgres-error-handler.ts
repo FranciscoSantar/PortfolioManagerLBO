@@ -21,6 +21,5 @@ export function handlePostgresError(error: any): never {
     }
   }
 
-  console.log(error)
   throw new InternalServerErrorException('Unexpected error');
 }
