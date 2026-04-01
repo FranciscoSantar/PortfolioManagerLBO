@@ -1,10 +1,4 @@
-import {
-  IsEnum,
-  IsInt,
-  IsNumberString,
-  IsOptional,
-  Min,
-} from 'class-validator';
+import { IsEnum, IsInt, IsOptional, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AssetTypeEnum } from 'src/asset_types/entities/asset_type.entity';
 import { ApiProperty } from '@nestjs/swagger';

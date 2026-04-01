@@ -1,10 +1,12 @@
-import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtPayload } from '../interfaces/jwt-payload.interface';
-import { User } from '../../users/entities/user.entity';
-import { ConfigService } from '@nestjs/config';
-import { UsersService } from 'src/users/users.service';
+
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
+
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { UsersService } from '../../users/users.service';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -12,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     config: ConfigService,
     private readonly userService: UsersService,
   ) {
-    const jwtSecret = config.get('jwtSecret');
+    const jwtSecret = config.get<string>('JWT_SECRET');
     if (!jwtSecret) {
       throw new Error(
         'Environment variable JWT_SECRET should be defined before running the app',
@@ -27,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload): Promise<{ id: string }> {
-    let user;
+    let user: User;
     const { email } = payload;
 
     try {

@@ -17,9 +17,9 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (config: ConfigService) => {
-        const jwtSecret = config.get('jwtSecret');
-        const jwtExpireTime = config.get('jwtExpireTime');
+      useFactory: (config: ConfigService) => {
+        const jwtSecret = config.get<string>('jwtSecret');
+        const jwtExpireTime = config.get<number>('jwtExpireTime');
         if (!jwtSecret) {
           throw new Error(
             'Environment variable JWT_SECRET should be defined before running the app',
@@ -28,7 +28,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
         return {
           secret: jwtSecret,
           signOptions: {
-            expiresIn: jwtExpireTime,
+            expiresIn: jwtExpireTime || '1h',
           },
         };
       },

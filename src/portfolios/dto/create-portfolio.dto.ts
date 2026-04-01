@@ -9,7 +9,7 @@ export class CreatePortfolioDto {
     description: 'The name of the portfolio',
     example: 'My Investment Portfolio',
   })
-  @Transform(({ value }) => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   @IsString()
   @MinLength(3)
   name: string;
@@ -19,7 +19,7 @@ export class CreatePortfolioDto {
     example: 'USD',
     enum: BaseCoin,
   })
-  @Transform(({ value }) => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   @IsEnum(BaseCoin)
   baseCoin: BaseCoin;
 
@@ -27,7 +27,7 @@ export class CreatePortfolioDto {
     description: 'A brief description of the portfolio',
     required: false,
   })
-  @Transform(({ value }) => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   @IsString()
   @IsOptional()
   @MinLength(3)

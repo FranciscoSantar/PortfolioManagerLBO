@@ -1,10 +1,10 @@
+import { Quote } from 'yahoo-finance2/modules/quote';
 import YahooFinance from 'yahoo-finance2';
 import { PinoLogger } from 'nestjs-pino';
 
 import { BadGatewayException, Inject, Injectable } from '@nestjs/common';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
-import { ShortAssetYahooFinance } from './interfaces/asset-yahoo-finance.interface';
 import { InsertAssetDto } from '../assets/dtos/insert-asset.dto';
 import { YahooAssetPriceDto } from './dto/yahoo-asset-price.dto';
 
@@ -22,22 +22,16 @@ export class YahooFinanceService {
     this.logger.setContext(YahooFinanceService.name);
   }
   async getDataForSeeding(assetList: string[]): Promise<InsertAssetDto[]> {
-    let yahooFinanceShortData: ShortAssetYahooFinance[] = [];
-
     const data = await this.fetchYahooFinance(assetList);
-    const formattedData: ShortAssetYahooFinance[] = data.map((assetData) => ({
-      symbol: assetData.symbol,
-      longName: assetData.longName,
-      exchange: assetData.exchange,
-      currency: assetData.currency,
-      marketState: assetData.marketState,
-    }));
-    yahooFinanceShortData.push(...formattedData);
-
-    const insertAssetsDtos: InsertAssetDto[] = this.toInsertAssetDto(
-      yahooFinanceShortData,
+    const yahooFinanceShortData: InsertAssetDto[] = data.map(
+      (assetData: Quote) => ({
+        name: assetData.longName as string,
+        ticker: assetData.symbol as string,
+        exchange: assetData.exchange as string,
+      }),
     );
-    return insertAssetsDtos;
+
+    return yahooFinanceShortData;
   }
 
   async getPriceByTicker(ticker: string): Promise<YahooAssetPriceDto> {
@@ -74,8 +68,8 @@ export class YahooFinanceService {
     }
 
     const yahooFinanceAssetPrice: YahooAssetPriceDto = {
-      symbol: yahooFinanceData[0].symbol,
-      price: yahooFinanceData[0].regularMarketPrice,
+      symbol: yahooFinanceData[0].symbol as string,
+      price: yahooFinanceData[0].regularMarketPrice as string,
     };
 
     await this.cacheManager.set(
@@ -99,8 +93,8 @@ export class YahooFinanceService {
     }
 
     const yahooFinanceAssetPrice: YahooAssetPriceDto = {
-      symbol: yahooFinanceData[0].symbol,
-      price: yahooFinanceData[0].regularMarketPrice,
+      symbol: yahooFinanceData[0].symbol as string,
+      price: yahooFinanceData[0].regularMarketPrice as string,
     };
 
     await this.cacheManager.set(
@@ -113,8 +107,8 @@ export class YahooFinanceService {
   }
 
   async updateAllPrices(assetsList: string[]): Promise<YahooAssetPriceDto[]> {
-    let assetsPrices: YahooAssetPriceDto[] = [];
-    let assetWithoutPrice: string[] = [];
+    const assetsPrices: YahooAssetPriceDto[] = [];
+    const assetWithoutPrice: string[] = [];
     let assetUpdated = assetsList.length;
 
     for (const asset of assetsList) {
@@ -138,15 +132,15 @@ export class YahooFinanceService {
           this.logger.warn(
             `Error fetching prices from the provider. Price of ${yahooFinanceAsset.symbol} is missing`,
             {
-              symbol: yahooFinanceAsset.symbol,
+              symbol: yahooFinanceAsset.symbol as string,
             },
           );
 
           continue;
         }
         const yahooFinanceAssetPrice: YahooAssetPriceDto = {
-          symbol: yahooFinanceAsset.symbol,
-          price: yahooFinanceAsset.regularMarketPrice,
+          symbol: yahooFinanceAsset.symbol as string,
+          price: yahooFinanceAsset.regularMarketPrice as string,
         };
 
         assetsPrices.push(yahooFinanceAssetPrice);
@@ -169,8 +163,8 @@ export class YahooFinanceService {
     return assetsPrices;
   }
 
-  private async fetchYahooFinance(assetList: string[]) {
-    const yahooFinanceData: any[] = [];
+  private async fetchYahooFinance(assetList: string[]): Promise<Quote[]> {
+    const yahooFinanceData: Quote[] = [];
 
     try {
       const assetsBatches = this.batchAssetList(assetList);
@@ -179,10 +173,10 @@ export class YahooFinanceService {
         const data = await this.yf.quote(assetsBatch);
         yahooFinanceData.push(...data);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error fetching prices from the provider', {
         assetList,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw new BadGatewayException('Error fetching prices from the provider');
     }
@@ -201,7 +195,7 @@ export class YahooFinanceService {
   }
 
   private batchAssetList(assetList: string[]): string[][] {
-    let batches: string[][] = [];
+    const batches: string[][] = [];
     if (assetList.length <= this.BATCH_SIZE) {
       return [assetList];
     }
@@ -215,18 +209,6 @@ export class YahooFinanceService {
       batches.push(batch);
     }
     return batches;
-  }
-
-  private toInsertAssetDto(yahooFinanceData: ShortAssetYahooFinance[]) {
-    const insertAssetsDtos: InsertAssetDto[] = yahooFinanceData.map(
-      (yahooFinanceAsset) => ({
-        name: yahooFinanceAsset.longName,
-        ticker: yahooFinanceAsset.symbol,
-        exchange: yahooFinanceAsset.exchange,
-      }),
-    );
-
-    return insertAssetsDtos;
   }
 
   getPriceCachingKey(ticker: string): string {

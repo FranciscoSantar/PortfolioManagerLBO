@@ -36,10 +36,10 @@ export class UsersService {
         lastName,
         email,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error creating user', {
         email: createUserDto.email,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -59,10 +59,10 @@ export class UsersService {
       }
 
       return user;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error fetching user by ID', {
         userId: id,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -87,10 +87,10 @@ export class UsersService {
       }
 
       return user;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error fetching user by email for login', {
         email,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -130,10 +130,10 @@ export class UsersService {
         email: user.email,
       });
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error during user deletion', {
         userId: id,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }

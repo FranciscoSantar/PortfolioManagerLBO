@@ -233,11 +233,11 @@ export class TransactionsService {
         unitPrice: Number(transaction.unitPrice),
         commission: Number(transaction.commissionAmount),
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error creating transaction', {
         portfolioId,
         createTransactionDto,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -299,12 +299,12 @@ export class TransactionsService {
         transactions: transactionsResponsesDto,
         totalCommission: totalComissionsAmount,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error fetching transactions of portfolio', {
         portfolioId,
         userId,
         filterDto,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -345,12 +345,12 @@ export class TransactionsService {
         unitPrice: Number(transaction.unitPrice),
         commission: Number(transaction.commissionAmount),
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error fetching transaction in portfolio', {
         id,
         portfolioId,
         userId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -362,10 +362,8 @@ export class TransactionsService {
     userId: string,
   ): Promise<ResponseAllTransactionsOfPortfolioAssetDto> {
     try {
-      const portfolio = await this.portfolioService.findOne(
-        portfolioId,
-        userId,
-      );
+      // Check if the portfolio exist and belong to the user before fetching transactions
+      await this.portfolioService.findOne(portfolioId, userId);
       const asset = await this.assetService.findOne(assetId);
 
       const transactions = await this.transactionRepository.find({
@@ -406,12 +404,12 @@ export class TransactionsService {
         transactions: transactionsResponsesDto,
         asset: assetResponseDto,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error fetching transactions of portfolio asset', {
         portfolioId,
         assetId,
         userId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -423,10 +421,8 @@ export class TransactionsService {
     userId: string,
   ): Promise<AllTransactionsOfPortfolioAsset> {
     try {
-      const portfolio = await this.portfolioService.findOne(
-        portfolioId,
-        userId,
-      );
+      // Check if the portfolio exist and belong to the user before fetching transactions
+      await this.portfolioService.findOne(portfolioId, userId);
       const asset = await this.assetService.findOne(assetId);
 
       const transactions = await this.transactionRepository.find({
@@ -447,14 +443,14 @@ export class TransactionsService {
         transactions,
         asset,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
         'Error fetching transactions of portfolio asset entities',
         {
           portfolioId,
           assetId,
           userId,
-          error,
+          error: error instanceof Error ? error.message : String(error),
         },
       );
       handlePostgresError(error);

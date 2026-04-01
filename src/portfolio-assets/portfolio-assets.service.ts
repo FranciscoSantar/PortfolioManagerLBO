@@ -55,11 +55,11 @@ export class PortfolioAssetsService {
       }
 
       return portfolioAsset;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error fetching portfolio asset', {
         portfolioId,
         assetId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -181,10 +181,10 @@ export class PortfolioAssetsService {
       });
 
       return orderedResponse;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error calculating portfolio assets info', {
         portfolioId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -214,10 +214,10 @@ export class PortfolioAssetsService {
       const portfolioTotalValueAndTotalAssets =
         await this.getPortfolioTotalAssetsAndTotalValue(portfolioAssets);
       return portfolioTotalValueAndTotalAssets;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error calculating portfolio summary', {
         portfolioId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
 
       handlePostgresError(error);
@@ -260,13 +260,13 @@ export class PortfolioAssetsService {
         userId,
       });
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error deleting portfolio asset', {
         portfolioId,
         assetId,
         portfolioAssetId,
         userId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }

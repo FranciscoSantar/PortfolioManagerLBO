@@ -10,6 +10,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { UsersService } from '../users/users.service';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { LoginResponseDto, RegisterResponseDto } from './dto/response.dto';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -47,17 +48,17 @@ export class AuthService {
         user,
         token: jwtToken,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error during user registration', {
         email: createUserDto.email,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
   }
 
   async login(loginUserDto: LoginUserDto): Promise<LoginResponseDto> {
-    let user;
+    let user: User;
     const { password, email } = loginUserDto;
 
     try {
@@ -93,10 +94,10 @@ export class AuthService {
       return {
         token: jwtToken,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error during user login', {
         email,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }

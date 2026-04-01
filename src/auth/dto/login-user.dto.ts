@@ -9,7 +9,7 @@ export class LoginUserDto {
     format: 'email',
   })
   @IsEmail()
-  @Transform(({ value }) => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   email: string;
 
   @ApiProperty({

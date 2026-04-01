@@ -38,9 +38,9 @@ export class SeedService {
       await this.assetService.saveForSeeding(cryptosAssetsDtos, 'CRYPTO');
 
       this.logger.info('Database seeding completed successfully');
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error during database seeding', {
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }

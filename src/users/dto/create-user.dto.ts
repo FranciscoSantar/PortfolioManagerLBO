@@ -10,7 +10,7 @@ export class CreateUserDto {
   })
   @IsString()
   @MinLength(2)
-  @Transform(({ value }) => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   firstName: string;
 
   @ApiProperty({
@@ -20,7 +20,7 @@ export class CreateUserDto {
   })
   @IsString()
   @MinLength(2)
-  @Transform(({ value }) => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   lastName: string;
 
   @ApiProperty({
@@ -29,7 +29,7 @@ export class CreateUserDto {
     format: 'email',
   })
   @IsEmail()
-  @Transform(({ value }) => value.trim())
+  @Transform(({ value }: { value: string }) => value.trim())
   email: string;
 
   @ApiProperty({

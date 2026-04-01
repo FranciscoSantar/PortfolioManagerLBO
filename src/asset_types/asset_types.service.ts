@@ -28,8 +28,7 @@ export class AssetTypesService {
       throw new Error('Asset Type table is already populated.');
     }
 
-    let assetTypesDtos: InsertAssetTypeDto[];
-    assetTypesDtos = assetTypes.map((type) => ({
+    const assetTypesDtos: InsertAssetTypeDto[] = assetTypes.map((type) => ({
       type,
     }));
 
@@ -52,7 +51,7 @@ export class AssetTypesService {
 
   async getByType(type: string) {
     try {
-      const assetType = this.assetTypeRepository.findOne({
+      const assetType = await this.assetTypeRepository.findOne({
         where: {
           type,
         },
@@ -62,7 +61,7 @@ export class AssetTypesService {
         throw new NotFoundException(`Asset type ${type} was not found.`);
       }
       return assetType;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error fetching asset type by type', {
         type,
         error,

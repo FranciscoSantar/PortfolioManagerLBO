@@ -89,11 +89,11 @@ export class ReportsService {
       return Buffer.from(
         XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }),
       );
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error generating report', {
         portfolioId,
         userId,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
 
       handlePostgresError(error);

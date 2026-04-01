@@ -39,9 +39,9 @@ export class AssetsService {
         this.toResponseDto(asset),
       );
       return assetsShortResponseDto;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error('Error fetching all assets', {
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -62,10 +62,10 @@ export class AssetsService {
         throw new NotFoundException(`Asset with ID = ${id} does not exist.`);
       }
       return asset;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Error fetching asset`, {
         id,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }
@@ -139,10 +139,10 @@ export class AssetsService {
         },
       );
       return updatePriceSuccess;
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Error during the update of the price of: ${ticker}`, {
         ticker,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       handlePostgresError(error);
     }

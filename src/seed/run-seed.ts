@@ -8,8 +8,10 @@ async function bootstrap() {
   try {
     await seedService.populateDB();
     console.log('Seeding completed successfully.');
-  } catch (error) {
-    console.error(`Seeding failed: ${error.message}`);
+  } catch (error: unknown) {
+    console.error(
+      `Seeding failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     process.exit(1);
   } finally {
     await app.close();

@@ -73,9 +73,9 @@ import configuration from '../config/configuration';
     CacheModule.registerAsync({
       isGlobal: true,
       inject: [ConfigService],
-      useFactory: async (config: ConfigService) => {
-        const cacheHost = config.get('cache.host');
-        const cachePort = config.get('cache.port');
+      useFactory: (config: ConfigService) => {
+        const cacheHost = config.get<string>('cache.host');
+        const cachePort = config.get<string>('cache.port');
         return {
           stores: [new KeyvRedis(`redis://${cacheHost}:${cachePort}`)],
         };

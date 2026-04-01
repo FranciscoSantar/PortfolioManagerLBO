@@ -5,19 +5,21 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 
-export function handlePostgresError(error: any): never {
+export function handlePostgresError(error: unknown): never {
   if (error instanceof HttpException) {
     // if error is a Nest error, re-throw
     throw error;
   }
 
-  if (error?.code) {
-    if (error.code === '23505') {
-      throw new ConflictException(`Duplicate value, ${error.detail}`);
+  if (typeof error === 'object' && error !== null && 'code' in error) {
+    const pgError = error as { code: string; detail?: string };
+
+    if (pgError.code === '23505') {
+      throw new ConflictException(`Duplicate value, ${pgError.detail}`);
     }
 
-    if (error.code === '22003') {
-      throw new BadRequestException(`Invalid value, ${error.detail}`);
+    if (pgError.code === '22003') {
+      throw new BadRequestException(`Invalid value, ${pgError.detail}`);
     }
   }
 

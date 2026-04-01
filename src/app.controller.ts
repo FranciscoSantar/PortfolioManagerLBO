@@ -1,7 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiProperty } from '@nestjs/swagger';
 
-import { AppService } from './app.service';
 import { Public } from './auth/decorators/public.decorator';
 
 class healthResponse {
