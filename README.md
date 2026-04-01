@@ -11,6 +11,7 @@ The API is documented with Swagger and available at `http://localhost:8000/docs`
 - [Database](docs/database.md)
 - Future Improvements: [EN](docs/future-improvements.md) | [ES](docs/future-improvements-es.md)
 - Technical Decisions: [EN](docs/technical-decisions.md) | [ES](docs/technical-decisions-es.md)
+- Optional Tasks: [EN](docs/optional-tasks.md) | [ES](docs/optional-tasks-es.md)
 
 ---
 
@@ -62,38 +63,48 @@ cp .env.example .env
 
 Open the `.env` file and fill in the required values (database credentials, JWT secret, etc.).
 
-> **Note:** when running with Docker, set `DB_HOST=postgres` and `CACHE_HOST=redis` to match the service names defined in `docker-compose.yml`. Running locally should use `localhost` for both.
+**Note:** when running with Docker, set `DB_HOST=postgres` and `CACHE_HOST=redis` to match the service names defined in `docker-compose.yml`. Running locally should use `localhost` for both.
 
----
+#### Environment Variables Reference
 
-### Without Docker
+| Variable | Required | Description | Example |
+|---|---|---|---|
+| `APP_PORT` | No | Port the API will listen on. Defaults to `8000`. | `8000` |
+| `IS_PROD` | No | Set to `true` to enable production mode (stricter logging, etc.). Defaults to `false`. | `false` |
+| `JWT_SECRET` | **Yes** | Secret key used to sign and verify JWT tokens. Use a long, random string. | `my-super-secret-key` |
+| `JWT_EXPIRES_IN` | No | JWT token expiry duration. Defaults to `1h`. Accepts values like `1h`, `7d`, `30m`. | `1h` |
+| `DB_USER` | No | PostgreSQL username. Defaults to `postgres`. | `admin` |
+| `DB_PASSWORD` | **Yes** | PostgreSQL password. | `admin` |
+| `DB_NAME` | No | PostgreSQL database name. Defaults to `PortfolioManager`. | `LBOPortfolioManager` |
+| `DB_PORT` | No | PostgreSQL port. Defaults to `5432`. | `5432` |
+| `DB_HOST` | No | PostgreSQL host. Use `postgres` with Docker, `localhost` without. Defaults to `postgres`. | `postgres` |
+| `CACHE_HOST` | No | Redis host. Use `redis` with Docker, `localhost` without. Defaults to `redis`. | `redis` |
+| `CACHE_PORT` | No | Redis port. Defaults to `6379`. | `6379` |
 
-#### Step 3 — Install dependencies
-
-```bash
-yarn install
-```
-
-#### Step 4 — Start the server
-
-```bash
-# Development mode (watch)
-yarn start:dev
-
-# Production mode
-yarn build && yarn start:prod
-```
-
----
-
-### With Docker
-
-#### Step 3 — Build and start all services
+### Step 3 — Build and start all services
 
 ```bash
 docker compose up --build -d
 ```
 
+> #### Without Docker
+> 
+> ##### Step 3.b — Install dependencies
+> 
+> ```bash
+> yarn install
+> ```
+> 
+> ##### Step 4.b — Start the server
+> 
+> ```bash
+> # Development mode (watch)
+> yarn start:dev
+> 
+> # Production mode
+> yarn build && yarn start:prod
+> ```
+> 
 ---
 
 ## Supported Assets
@@ -118,12 +129,12 @@ Make sure that new assets exist in Yahoo Finance first.
 Before seeding, apply the migrations to create all tables:
 
 ```bash
-yarn build && yarn migration:run
+docker exec -it portfolioapi yarn migration:run
 ```
 
-> Note: when running with Docker:
+> Note: when running without Docker:
 > ```bash
-> docker exec portfolioapi yarn migration:run
+> yarn migration:run
 > ```
 
 ### 2. Seed the database
@@ -131,18 +142,18 @@ yarn build && yarn migration:run
 Run the seed script to populate asset types and all supported assets:
 
 ```bash
-yarn seed
+docker exec -it portfolioapi yarn seed:prod
 ```
 
-> Note: when running with Docker:
+> Note: when running without Docker:
 > ```bash
-> docker exec -it portfolioapi yarn seed:prod
+> yarn seed:prod
 > ```
 
 ### 3. Create a user and get a token
 
 ```bash
-curl -X POST http://localhost:8000/v1/api/users \
+curl -X POST http://localhost:8000/v1/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "John",
