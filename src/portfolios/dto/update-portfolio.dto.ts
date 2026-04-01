@@ -9,7 +9,9 @@ export class UpdatePortfolioDto {
   @ApiProperty({
     description: 'The name of the portfolio',
     example: 'My Investment Portfolio',
+    required: false,
   })
+  @IsOptional()
   @Transform(({ value }: { value: string }) => value.trim())
   @IsString()
   @MinLength(3)
@@ -19,7 +21,9 @@ export class UpdatePortfolioDto {
     description: 'The base coin of the portfolio',
     example: 'USD',
     enum: BaseCoin,
+    required: false,
   })
+  @IsOptional()
   @Transform(({ value }: { value: string }) => value.trim())
   @IsEnum(BaseCoin)
   baseCoin: BaseCoin;

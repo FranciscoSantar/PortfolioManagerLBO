@@ -17,7 +17,7 @@ import { SeedModule } from './seed/seed.module';
 import { AuthModule } from './auth/auth.module';
 import { PortfolioAssetsModule } from './portfolio-assets/portfolio-assets.module';
 import { ReportsModule } from './reports/reports.module';
-import configuration from '../config/configuration';
+import configuration from './config/configuration';
 
 @Module({
   imports: [
@@ -33,7 +33,7 @@ import configuration from '../config/configuration';
 
         return {
           pinoHttp: {
-            level: isProd ? 'info' : 'debug',
+            level: isProd ? 'info' : 'info',
             transport: isProd
               ? undefined
               : {

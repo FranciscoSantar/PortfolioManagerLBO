@@ -21,4 +21,4 @@ RUN adduser --disabled-password runnerUser
 RUN chown -R runnerUser:runnerUser /app
 USER runnerUser
 
-CMD [ "node","dist/src/main" ]
+CMD [ "node","dist/main" ]
