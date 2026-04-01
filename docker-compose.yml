@@ -29,7 +29,7 @@ services:
       start_period: 15s
       retries: 5
     ports:
-      - "6379:6379"
+      - "${CACHE_PORT}:6379"
   
   portfolioapi:
     depends_on:
