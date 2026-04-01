@@ -28,6 +28,7 @@ async function bootstrap() {
       'The API for LBO Portfolio Manager allows users to manage their investment portfolios, track assets, and generate reports.',
     )
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory, {

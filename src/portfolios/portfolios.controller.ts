@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
@@ -45,6 +46,7 @@ export class PortfoliosController {
   })
   @ApiBadRequestResponse({ description: 'Invalid input data' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Post()
   create(
     @Body() createPortfolioDto: CreatePortfolioDto,
@@ -60,6 +62,7 @@ export class PortfoliosController {
   })
   @ApiBadRequestResponse({ description: 'Invalid pagination parameters' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Get()
   findAll(
     @User('id') userId: string,
@@ -76,6 +79,7 @@ export class PortfoliosController {
   @ApiBadRequestResponse({ description: 'Invalid portfolio ID' })
   @ApiNotFoundResponse({ description: 'Portfolio not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Get(':id')
   findOne(
     @Param('id', ParseUUIDPipe) id: string,
@@ -93,6 +97,7 @@ export class PortfoliosController {
   @ApiBadRequestResponse({ description: 'Invalid input data or portfolio ID' })
   @ApiNotFoundResponse({ description: 'Portfolio not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -107,6 +112,7 @@ export class PortfoliosController {
   @ApiBadRequestResponse({ description: 'Invalid portfolio ID' })
   @ApiNotFoundResponse({ description: 'Portfolio not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id', ParseUUIDPipe) id: string, @User('id') userId: string) {

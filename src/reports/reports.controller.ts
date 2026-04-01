@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -33,6 +34,7 @@ export class ReportsController {
   @ApiBadRequestResponse({ description: 'Invalid portfolio ID' })
   @ApiNotFoundResponse({ description: 'Portfolio not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Get(':portfolioId')
   async getReport(
     @Param('portfolioId', ParseUUIDPipe) portfolioId: string,

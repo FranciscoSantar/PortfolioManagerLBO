@@ -1,5 +1,6 @@
 import { Controller, Param, ParseUUIDPipe, Delete } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOperation,
@@ -19,6 +20,7 @@ export class PortfolioAssetController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Portfolio or Asset not found' })
+  @ApiBearerAuth()
   @Delete(':portfolioAssetId')
   remove(
     @Param('portfolioAssetId', ParseUUIDPipe) portfolioAssetId: string,

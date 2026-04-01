@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -40,6 +41,7 @@ export class TransactionsController {
   @ApiBadRequestResponse({ description: 'Invalid input data' })
   @ApiNotFoundResponse({ description: 'Portfolio or Asset not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Post()
   create(
     @Param('portfolioId', ParseUUIDPipe) portfolioId: string,
@@ -64,6 +66,7 @@ export class TransactionsController {
   @ApiBadRequestResponse({ description: 'Invalid filter parameters' })
   @ApiNotFoundResponse({ description: 'Portfolio not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Get()
   findAllTransactionsInPortfolio(
     @Param('portfolioId', ParseUUIDPipe) portfolioId: string,
@@ -84,6 +87,7 @@ export class TransactionsController {
   })
   @ApiNotFoundResponse({ description: 'Portfolio or Transaction not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Get(':transactionId')
   findOneTransactionInPortfolio(
     @Param('portfolioId', ParseUUIDPipe) portfolioId: string,
@@ -107,6 +111,7 @@ export class TransactionsController {
   })
   @ApiNotFoundResponse({ description: 'Portfolio or Asset not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Get('assets/:assetId')
   findTransactionsOfPortfolioAsset(
     @Param('portfolioId', ParseUUIDPipe) portfolioId: string,

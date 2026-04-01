@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Post } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -20,6 +21,7 @@ export class AssetsController {
     type: [ShortResponseAssetDto],
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth()
   @Get()
   findAll() {
     return this.assetService.findAll();
@@ -32,6 +34,7 @@ export class AssetsController {
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Asset not found' })
+  @ApiBearerAuth()
   @Post(':ticker/update')
   updatePrice(@Param('ticker') ticker: string) {
     return this.assetService.updatePrice(ticker);
