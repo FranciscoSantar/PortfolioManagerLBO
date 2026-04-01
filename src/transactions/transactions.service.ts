@@ -457,6 +457,10 @@ export class TransactionsService {
     }
   }
 
+  async hasAny(): Promise<boolean> {
+    return this.transactionRepository.exists({});
+  }
+
   private getCommissionAmout(
     quantity: number,
     unitPrice: number,

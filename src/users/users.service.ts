@@ -10,7 +10,6 @@ import { Portfolio } from '../portfolios/entities/portfolio.entity';
 import { handlePostgresError } from '../common/utils/postgres-error-handler';
 import { CreatedUserResponseDto } from './dto/response-user.dto';
 import { PortfolioAsset } from '../portfolio-assets/entities/portfolio-asset.entity';
-import { Transaction } from '../transactions/entities/transaction.entity';
 
 @Injectable()
 export class UsersService {
@@ -101,14 +100,6 @@ export class UsersService {
       const user = await this.findById(id);
 
       await this.dataSource.transaction(async (manager) => {
-        await manager.softDelete(Transaction, {
-          portfolio: {
-            user: {
-              id,
-            },
-          },
-        });
-
         await manager.softDelete(PortfolioAsset, {
           portfolio: {
             user: {

@@ -272,6 +272,10 @@ export class PortfolioAssetsService {
     }
   }
 
+  async hasAny(): Promise<boolean> {
+    return this.portfolioAssetRepository.exists({});
+  }
+
   private async getPortfolioTotalAssetsAndTotalValue(
     portfolioAssets: PortfolioAsset[],
   ): Promise<ShortResponsePortfolioAssetDto> {

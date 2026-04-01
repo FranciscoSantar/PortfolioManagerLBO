@@ -9,7 +9,8 @@ import {
   CRYPTO_SYMBOLS,
   ASSET_TYPES,
 } from './data/assets-types-and-assets';
-import { handlePostgresError } from '../common/utils/postgres-error-handler';
+import { TransactionsService } from '../transactions/transactions.service';
+import { PortfolioAssetsService } from '../portfolio-assets/portfolio-assets.service';
 
 @Injectable()
 export class SeedService {
@@ -17,6 +18,8 @@ export class SeedService {
     private readonly assetTypesService: AssetTypesService,
     private readonly assetService: AssetsService,
     private readonly yahooFinanceService: YahooFinanceService,
+    private readonly portfolioAssetsService: PortfolioAssetsService,
+    private readonly transactionsService: TransactionsService,
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(SeedService.name);
@@ -25,11 +28,27 @@ export class SeedService {
     try {
       this.logger.info('Starting database seeding process');
 
+      const hasPortfolioAssets = await this.portfolioAssetsService.hasAny();
+      const hasTransactions = await this.transactionsService.hasAny();
+
+      if (hasPortfolioAssets || hasTransactions) {
+        this.logger.error(
+          'Error running seeder: there are existing portfolio assets or transactions. Clean them first.',
+        );
+        throw new Error(
+          'Error running seeder: there are existing portfolio assets or transactions. Clean them first.',
+        );
+      }
+
+      await this.assetService.deleteAllForSeeding();
+      await this.assetTypesService.deleteAllForSeeding();
+
       await this.assetTypesService.saveForSeeding(ASSET_TYPES);
 
       // Start seeding stocks
       const stocksAssetsDtos =
         await this.yahooFinanceService.getDataForSeeding(STOCKS_TICKERS);
+
       await this.assetService.saveForSeeding(stocksAssetsDtos, 'STOCK');
 
       // Then, Cryptos
@@ -42,7 +61,7 @@ export class SeedService {
       this.logger.error('Error during database seeding', {
         error: error instanceof Error ? error.message : String(error),
       });
-      handlePostgresError(error);
+      throw error;
     }
   }
 }

@@ -20,14 +20,6 @@ export class AssetTypesService {
   }
 
   async saveForSeeding(assetTypes: string[]) {
-    const isPopulated = await this.checkIfExists();
-    if (isPopulated) {
-      this.logger.warn(
-        'Attempt to seed Asset Types table when it is already populated',
-      );
-      throw new Error('Asset Type table is already populated.');
-    }
-
     const assetTypesDtos: InsertAssetTypeDto[] = assetTypes.map((type) => ({
       type,
     }));
@@ -68,5 +60,9 @@ export class AssetTypesService {
       });
       handlePostgresError(error);
     }
+  }
+
+  async deleteAllForSeeding(): Promise<void> {
+    await this.assetTypeRepository.createQueryBuilder().delete().execute();
   }
 }
