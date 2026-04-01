@@ -11,7 +11,7 @@ import {
 
 import { AssetType } from '../../asset_types/entities/asset_type.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
-import { PortfolioAsset } from 'src/portfolio-assets/entities/portfolio-asset.entity';
+import { PortfolioAsset } from '../../portfolio-assets/entities/portfolio-asset.entity';
 
 @Entity()
 export class Asset {

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { ReportsController } from './reports.controller';
-import { TransactionsModule } from 'src/transactions/transactions.module';
-import { PortfoliosModule } from 'src/portfolios/portfolios.module';
+import { TransactionsModule } from '../transactions/transactions.module';
+import { PortfoliosModule } from '../portfolios/portfolios.module';
 
 @Module({
   controllers: [ReportsController],

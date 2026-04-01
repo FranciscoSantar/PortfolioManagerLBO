@@ -16,7 +16,7 @@ import {
 } from './dto/response-portfolio.dto';
 import {
   GetPortfolioAssetsQueryParamsDto,
-  PagintionPortfolioDto,
+  PaginationPortfolioDto,
 } from './dto/query-params-portfolio.dto';
 import { PortfolioAsset } from '../portfolio-assets/entities/portfolio-asset.entity';
 import { ResponsePortfolioAssetDto } from '../portfolio-assets/dto/response-portfolio-asset.dto';
@@ -73,7 +73,7 @@ export class PortfoliosService {
 
   async findAll(
     userId: string,
-    paginationParams: PagintionPortfolioDto,
+    paginationParams: PaginationPortfolioDto,
   ): Promise<ShortResponsePortfolioDto> {
     try {
       const { pageSize = 10, pageNumber = 0 } = paginationParams;

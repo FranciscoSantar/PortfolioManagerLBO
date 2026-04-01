@@ -13,7 +13,7 @@ import {
 
 import { User } from '../../users/entities/user.entity';
 import { Transaction } from '../../transactions/entities/transaction.entity';
-import { PortfolioAsset } from 'src/portfolio-assets/entities/portfolio-asset.entity';
+import { PortfolioAsset } from '../../portfolio-assets/entities/portfolio-asset.entity';
 
 export enum BaseCoin {
   ARS = 'ARS',

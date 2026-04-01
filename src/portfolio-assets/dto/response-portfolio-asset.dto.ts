@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ShortResponseAssetDto } from 'src/assets/dtos/response-asset.dto';
+
+import { ShortResponseAssetDto } from '../../assets/dtos/response-asset.dto';
 
 export class ShortResponsePortfolioAssetDto {
   @ApiProperty({

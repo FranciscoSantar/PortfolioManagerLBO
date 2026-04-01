@@ -17,7 +17,7 @@ import { ShortResponseAssetDto } from '../assets/dtos/response-asset.dto';
 import { roundToDecimals } from '../common/utils/float-parser';
 import {
   GetPortfolioAssetsQueryParamsDto,
-  OrderPortolioAsstesByEnum,
+  OrderPortfolioAssetsByEnum,
 } from '../portfolios/dto/query-params-portfolio.dto';
 import { AssetTypeEnum } from '../asset_types/entities/asset_type.entity';
 import { YahooAssetPriceDto } from '../yahoo-finance/dto/yahoo-asset-price.dto';
@@ -346,16 +346,16 @@ export class PortfolioAssetsService {
     response: ResponsePortfolioAssetDto,
     queryDto?: GetPortfolioAssetsQueryParamsDto,
   ): ResponsePortfolioAssetDto {
-    const { orderBy = OrderPortolioAsstesByEnum.VALUE } = queryDto ?? {};
+    const { orderBy = OrderPortfolioAssetsByEnum.VALUE } = queryDto ?? {};
     const sortMap: Record<
-      OrderPortolioAsstesByEnum,
+      OrderPortfolioAssetsByEnum,
       (
         a: AssetDataWithCurrentValueDto,
         b: AssetDataWithCurrentValueDto,
       ) => number
     > = {
-      [OrderPortolioAsstesByEnum.VALUE]: (a, b) => b.unitPrice - a.unitPrice,
-      [OrderPortolioAsstesByEnum.PERCENTAGE]: (a, b) => b.roi - a.roi,
+      [OrderPortfolioAssetsByEnum.VALUE]: (a, b) => b.unitPrice - a.unitPrice,
+      [OrderPortfolioAssetsByEnum.PERCENTAGE]: (a, b) => b.roi - a.roi,
     };
     response.assets.sort(sortMap[orderBy]);
     return response;

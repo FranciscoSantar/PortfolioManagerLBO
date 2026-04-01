@@ -27,13 +27,13 @@ import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
 import {
   GetPortfolioAssetsQueryParamsDto,
-  PagintionPortfolioDto,
+  PaginationPortfolioDto,
 } from './dto/query-params-portfolio.dto';
 import {
   ResponseCreatePortfolioDto,
   ShortResponsePortfolioDto,
 } from './dto/response-portfolio.dto';
-import { ResponsePortfolioAssetDto } from 'src/portfolio-assets/dto/response-portfolio-asset.dto';
+import { ResponsePortfolioAssetDto } from '../portfolio-assets/dto/response-portfolio-asset.dto';
 
 @Controller('portfolios')
 export class PortfoliosController {
@@ -66,7 +66,7 @@ export class PortfoliosController {
   @Get()
   findAll(
     @User('id') userId: string,
-    @Query() paginationDto: PagintionPortfolioDto,
+    @Query() paginationDto: PaginationPortfolioDto,
   ) {
     return this.portfoliosService.findAll(userId, paginationDto);
   }

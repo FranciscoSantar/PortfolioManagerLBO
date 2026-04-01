@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-import { Asset } from 'src/assets/entities/asset.entity';
+import { Asset } from '../../assets/entities/asset.entity';
 
 export enum AssetTypeEnum {
   STOCK = 'STOCK',
