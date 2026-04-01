@@ -14,6 +14,6 @@
 
 The following optional tasks were not completed due to time constraints:
 
-- **Unit and integration tests**: For unit testing, I would choose `Jest`, since I have experience with it.
+- **Unit and integration tests**: For unit testing, I would choose `Jest`, since I have experience with it. I would mainly focus on developing unit tests for the services that contain the most complex business logic, such as `PortfolioAssetsService` and `TransactionsService`.
 
 - **Deployment to a platform**
