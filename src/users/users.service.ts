@@ -37,6 +37,10 @@ export class UsersService {
         email
       };
     } catch (error) {
+      this.logger.error('Error creating user', {
+        email: createUserDto.email,
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -56,6 +60,10 @@ export class UsersService {
 
       return user;
     } catch (error) {
+      this.logger.error('Error fetching user by ID', {
+        userId: id,
+        error
+      })
       handlePostgresError(error)
     }
   }
@@ -80,6 +88,10 @@ export class UsersService {
 
       return user;
     } catch (error) {
+      this.logger.error('Error fetching user by email for login', {
+        email,
+        error
+      })
       handlePostgresError(error)
     }
   }
